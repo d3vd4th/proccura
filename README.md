@@ -74,7 +74,7 @@ proccura/
 
 ---
 
-## 🔐 Multi-Tenancy Model
+## Multi-Tenancy Model
 
 - Single database
 - Shared tables with strict `tenant_id` isolation
@@ -83,7 +83,7 @@ proccura/
 
 ---
 
-## 🚀 Getting Started (Local Development)
+## Getting Started (Local Development)
 
 ### Prerequisites
 - Node.js (v18+)
