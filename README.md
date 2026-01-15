@@ -23,7 +23,7 @@ Frontend (React)
 ↓
 API Gateway (FastAPI)
 ↓
-Microservices (FastAPI)
+M$icroservices (FastAPI)
 ↓
 PostgreSQL | Redis | AI | H3 | Payment Gateway
 
