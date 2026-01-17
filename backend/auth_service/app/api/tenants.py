@@ -21,7 +21,7 @@ def get_db():
         db.close()
 
 
-@router.post("", response_model=TenantResponse, status_code=201)
+@router.post("/create", response_model=TenantResponse, status_code=201)
 def create_tenant_api(
     payload: TenantCreate,
     db: Session = Depends(get_db),
@@ -44,7 +44,7 @@ def update_tenant_api(
     return update_tenant(db, tenant, payload)
 
 
-@router.get("", response_model=list[TenantResponse])
+@router.get("/list", response_model=list[TenantResponse])
 def list_tenants_api(
     db: Session = Depends(get_db),
     _=Depends(require_super_admin)
