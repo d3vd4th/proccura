@@ -2,7 +2,7 @@ from datetime import datetime, timedelta
 from typing import Optional
 
 from passlib.context import CryptContext
-from jose import jwt
+from jose import jwt , JWTError
 import os
 from dotenv import load_dotenv
 
@@ -24,9 +24,6 @@ REFRESH_TOKEN_EXPIRE_DAYS = int(
 )
 
 def hash_password(password: str) -> str:
-    """
-    Hash password safely for bcrypt (max 72 bytes).
-    """
     password_bytes = password.encode("utf-8")
     if len(password_bytes) > 72:
         password = password_bytes[:72].decode("utf-8", errors="ignore")
@@ -80,3 +77,12 @@ def decode_token(token: str) -> dict:
     Decode and validate JWT.
     """
     return jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+
+
+def decode_refresh_token(token: str) -> dict:
+    payload = decode_token(token)
+
+    if payload.get("type") != "refresh":
+        raise JWTError("Invalid refresh token")
+
+    return payload
