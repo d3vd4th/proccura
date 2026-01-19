@@ -9,17 +9,10 @@ from auth_service.app.services.tenant_service import (
     create_tenant, update_tenant, get_tenant, list_tenants
 )
 from auth_service.app.dependencies.auth import require_super_admin
+from auth_service.app.api.deps import get_db  
 
-router = APIRouter(prefix="/tenants", tags=["Tenants"])
 
-
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
-
+router = APIRouter()  
 
 @router.post("/create", response_model=TenantResponse, status_code=201)
 def create_tenant_api(

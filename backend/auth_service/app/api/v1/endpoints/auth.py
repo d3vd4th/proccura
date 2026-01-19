@@ -1,19 +1,11 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
-from shared.database import SessionLocal
 from auth_service.app.schemas.auth import LoginRequest, RefreshTokenRequest, TokenResponse
 from auth_service.app.services.auth_service import authenticate_user, issue_tokens, refresh_access_token
+from auth_service.app.api.deps import get_db  
 
-router = APIRouter(prefix="/auth", tags=["Auth"])
-
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
-
+router = APIRouter()  
 
 @router.post("/login", response_model=TokenResponse)
 def login(payload: LoginRequest, db: Session = Depends(get_db)):

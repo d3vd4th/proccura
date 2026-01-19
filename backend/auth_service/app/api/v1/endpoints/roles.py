@@ -17,16 +17,10 @@ from auth_service.app.services.role_service import (
 from auth_service.app.dependencies.tenant import get_current_tenant
 from auth_service.app.dependencies.permissions import require_permission
 from auth_service.app.models.role import Role
+from auth_service.app.api.deps import get_db  
 
-router = APIRouter(prefix="/roles", tags=["Roles"])
 
-
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
+router = APIRouter()  
 
 
 @router.post(

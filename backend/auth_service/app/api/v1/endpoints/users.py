@@ -15,17 +15,10 @@ from auth_service.app.services.user_service import (
 from auth_service.app.dependencies.tenant import get_current_tenant
 from auth_service.app.dependencies.permissions import require_permission
 from auth_service.app.models.user import User
+from auth_service.app.api.deps import get_db  
 
-router = APIRouter(prefix="/users", tags=["Users"])
 
-
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
-
+router = APIRouter()  
 
 @router.post(
     "",
