@@ -1,5 +1,5 @@
 from fastapi import Depends, HTTPException, status
-from fastapi.security import OAuth2PasswordBearer
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from jose import JWTError
 from sqlalchemy.orm import Session
 
@@ -8,7 +8,7 @@ from shared.security import decode_token
 from auth_service.app.models.user import User
 
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
+security = HTTPBearer()
 
 
 def get_db():
@@ -20,21 +20,16 @@ def get_db():
 
 
 def get_current_user(
-    token: str = Depends(oauth2_scheme),
+    credentials: HTTPAuthorizationCredentials = Depends(security),
     db: Session = Depends(get_db),
 ) -> User:
-    """
-    1. Extract JWT from Authorization header
-    2. Decode & validate token
-    3. Fetch user from DB
-    4. Ensure user is active
-    """
+    token = credentials.credentials  
 
     try:
         payload = decode_token(token)
-        user_id: str | None = payload.get("sub")
+        user_id = payload.get("sub")
 
-        if user_id is None:
+        if not user_id:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Invalid token payload",
@@ -48,16 +43,10 @@ def get_current_user(
 
     user = db.query(User).filter(User.id == user_id).first()
 
-    if not user:
+    if not user or not user.is_active:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="User not found",
-        )
-
-    if not user.is_active:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="User is inactive",
+            detail="User not found or inactive",
         )
 
     return user

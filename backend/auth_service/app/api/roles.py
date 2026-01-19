@@ -1,0 +1,112 @@
+from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy.orm import Session
+
+from shared.database import SessionLocal
+from auth_service.app.schemas.role import (
+    RoleCreate,
+    RoleUpdate,
+    RoleResponse,
+    RolePermissionUpdate,
+)
+from auth_service.app.services.role_service import (
+    create_role,
+    list_roles,
+    update_role,
+    replace_role_permissions,
+)
+from auth_service.app.dependencies.tenant import get_current_tenant
+from auth_service.app.dependencies.permissions import require_permission
+from auth_service.app.models.role import Role
+
+router = APIRouter(prefix="/roles", tags=["Roles"])
+
+
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
+
+
+@router.post(
+    "",
+    response_model=RoleResponse,
+    status_code=201,
+    dependencies=[Depends(require_permission("role.create"))],
+)
+def create_role_api(
+    payload: RoleCreate,
+    tenant = Depends(get_current_tenant),
+    db: Session = Depends(get_db),
+):
+    return create_role(db, tenant.id, payload)
+
+@router.get(
+    "",
+    response_model=list[RoleResponse],
+    dependencies=[Depends(require_permission("role.read"))],
+)
+def list_roles_api(
+    tenant = Depends(get_current_tenant),
+    db: Session = Depends(get_db),
+):
+    return list_roles(db, tenant.id)
+
+
+@router.put(
+    "/{role_id}",
+    response_model=RoleResponse,
+    dependencies=[Depends(require_permission("role.update"))],
+)
+def update_role_api(
+    role_id: str,
+    payload: RoleUpdate,
+    tenant = Depends(get_current_tenant),
+    db: Session = Depends(get_db),
+):
+    role = (
+        db.query(Role)
+        .filter(
+            Role.id == role_id,
+            Role.tenant_id == tenant.id,
+        )
+        .first()
+    )
+
+    if not role:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Role not found",
+        )
+
+    return update_role(db, role, payload)
+
+
+@router.put(
+    "/{role_id}/permissions",
+    status_code=204,
+    dependencies=[Depends(require_permission("role.permission.update"))],
+)
+def update_role_permissions_api(
+    role_id: str,
+    payload: RolePermissionUpdate,
+    tenant = Depends(get_current_tenant),
+    db: Session = Depends(get_db),
+):
+    role = (
+        db.query(Role)
+        .filter(
+            Role.id == role_id,
+            Role.tenant_id == tenant.id,
+        )
+        .first()
+    )
+
+    if not role:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Role not found",
+        )
+
+    replace_role_permissions(db, role.id, payload.permission_ids)

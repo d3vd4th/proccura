@@ -7,7 +7,7 @@ from sqlalchemy import ForeignKey, UniqueConstraint
 class Role(Base):
     __tablename__ = "roles"
 
-    id = Column(String(36), primary_key=True)
+    id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     tenant_id = Column(
         String(36),
         ForeignKey("tenants.id", ondelete="CASCADE"),
