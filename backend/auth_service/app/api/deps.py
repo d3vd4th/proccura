@@ -1,10 +1,7 @@
-from typing import Generator
-from sqlalchemy.orm import Session
-from shared.database import SessionLocal
+from auth_service.app.core.database import SessionLocal
 
 
-def get_db() -> Generator[Session, None, None]:
-    """Database session dependency."""
+def get_db():
     db = SessionLocal()
     try:
         yield db

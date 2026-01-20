@@ -1,12 +1,9 @@
 from datetime import datetime, timedelta
 from typing import Optional
+import os
 
 from passlib.context import CryptContext
-from jose import jwt , JWTError
-import os
-from dotenv import load_dotenv
-
-load_dotenv()
+from jose import jwt, JWTError
 
 pwd_context = CryptContext(
     schemes=["bcrypt"],
@@ -23,6 +20,10 @@ REFRESH_TOKEN_EXPIRE_DAYS = int(
     os.getenv("REFRESH_TOKEN_EXPIRE_DAYS", 7)
 )
 
+if not SECRET_KEY:
+    raise RuntimeError("SECRET_KEY is not set in environment")
+
+
 def hash_password(password: str) -> str:
     password_bytes = password.encode("utf-8")
     if len(password_bytes) > 72:
@@ -31,10 +32,8 @@ def hash_password(password: str) -> str:
 
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
-    """
-    Verify a plain-text password against a bcrypt hash.
-    """
     return pwd_context.verify(plain_password, hashed_password)
+
 
 def create_access_token(
     subject: str,
@@ -42,9 +41,6 @@ def create_access_token(
     permissions: list[str],
     is_super_admin: bool
 ) -> str:
-    """
-    Create short-lived access token.
-    """
     payload = {
         "sub": subject,
         "tenant_id": tenant_id,
@@ -59,9 +55,6 @@ def create_access_token(
 
 
 def create_refresh_token(subject: str) -> str:
-    """
-    Create long-lived refresh token.
-    """
     payload = {
         "sub": subject,
         "type": "refresh",
@@ -73,16 +66,11 @@ def create_refresh_token(subject: str) -> str:
 
 
 def decode_token(token: str) -> dict:
-    """
-    Decode and validate JWT.
-    """
     return jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
 
 
 def decode_refresh_token(token: str) -> dict:
     payload = decode_token(token)
-
     if payload.get("type") != "refresh":
         raise JWTError("Invalid refresh token")
-
     return payload

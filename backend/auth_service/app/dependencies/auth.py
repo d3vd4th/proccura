@@ -3,20 +3,12 @@ from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from jose import JWTError
 from sqlalchemy.orm import Session
 
-from shared.database import SessionLocal
 from shared.security import decode_token
 from auth_service.app.models.user import User
-
+from auth_service.app.api.deps import get_db  
 
 security = HTTPBearer()
 
-
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
 
 
 def get_current_user(
