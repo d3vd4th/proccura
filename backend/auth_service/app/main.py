@@ -1,13 +1,11 @@
-from pathlib import Path
 from dotenv import load_dotenv
+from pathlib import Path
 
-BASE_DIR = Path(__file__).resolve().parents[1]  # auth_service/
+BASE_DIR = Path(__file__).resolve().parents[1]  
 load_dotenv(BASE_DIR / ".env")
 from fastapi import FastAPI
 from auth_service.app.api.v1.router import api_router
 
-import os
-print("SECRET_KEY =", os.getenv("SECRET_KEY"))
 app = FastAPI(
     title="Auth Service",
     version="1.0.0",
