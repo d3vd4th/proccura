@@ -1,4 +1,5 @@
 backend/.env
 backend/venv
 backend/auth_service/venv
+backend/auth_service/.env
 backend/api_gateway/venv

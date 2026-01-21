@@ -3,7 +3,7 @@ from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from jose import JWTError
 from sqlalchemy.orm import Session
 
-from shared.security import decode_token
+from auth_service.app.core.security import decode_token
 from auth_service.app.models.user import User
 from auth_service.app.api.deps import get_db  
 

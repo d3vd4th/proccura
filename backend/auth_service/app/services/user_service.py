@@ -1,7 +1,7 @@
 from sqlalchemy.orm import Session
 from auth_service.app.models.user import User
 from auth_service.app.models.tenant_user import TenantUser
-from shared.security import hash_password
+from auth_service.app.core.security import hash_password
 
 
 def create_user(

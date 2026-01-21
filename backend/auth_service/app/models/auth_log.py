@@ -1,7 +1,7 @@
 import uuid
 from sqlalchemy import Column, String, DateTime, JSON
 from sqlalchemy.sql import func
-from shared.database import Base
+from auth_service.app.core.database import Base
 
 class AuthLog(Base):
     __tablename__ = "auth_logs"

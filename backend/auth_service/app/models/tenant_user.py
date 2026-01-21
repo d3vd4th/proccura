@@ -1,8 +1,15 @@
+import enum
 import uuid
 from sqlalchemy import Column, Enum, String, ForeignKey, DateTime, UniqueConstraint
 from sqlalchemy.sql import func
-from shared.database import Base
-from shared.enums import TenantUserStatus
+from auth_service.app.core.database import Base
+
+class TenantUserStatus(enum.Enum):
+    INVITED = "invited"
+    ACTIVE = "active"
+    SUSPENDED = "suspended"
+    REMOVED = "removed"
+
 
 class TenantUser(Base):
     __tablename__ = "tenant_users"

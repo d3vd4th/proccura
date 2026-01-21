@@ -2,7 +2,7 @@ from sqlalchemy.orm import Session
 from fastapi import HTTPException, status
 
 from auth_service.app.models.user import User
-from shared.security import verify_password, create_access_token, decode_refresh_token,create_refresh_token
+from auth_service.app.core.security import verify_password, create_access_token, decode_token,create_refresh_token
 from jose import JWTError
 
 def authenticate_user(db: Session, email: str, password: str) -> User:
@@ -38,7 +38,7 @@ def issue_tokens(user: User):
 
 def refresh_access_token(db, refresh_token: str):
     try:
-        payload = decode_refresh_token(refresh_token)
+        payload = decode_token(refresh_token)
         user_id = payload.get("sub")
     except JWTError:
         raise HTTPException(

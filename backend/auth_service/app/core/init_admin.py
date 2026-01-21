@@ -1,7 +1,7 @@
-from shared.database import SessionLocal
+from auth_service.app.core.database import SessionLocal
 from auth_service.app.core.seed_permissions import seed_permissions
 from auth_service.app.models.user import User
-from shared.security import hash_password
+from auth_service.app.core.security import hash_password
 
 
 SUPER_ADMIN_EMAIL = "admin@proccura.ai"
