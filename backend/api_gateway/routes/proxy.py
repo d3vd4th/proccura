@@ -1,19 +1,20 @@
 from fastapi import APIRouter, Request, HTTPException
 from typing import Optional
-from api_gateway.config import settings
-from api_gateway.utils.http_client import service_client
-from api_gateway.utils.jwt import get_user_from_token
+from config import settings
+from utils.http_client import service_client
+from utils.jwt import get_user_from_token
 
 router = APIRouter()
 
 
-# Service routing map
+# Service routing map - map URL paths to service URLs
 SERVICE_ROUTES = {
     "/roles": settings.AUTH_SERVICE_URL,
     "/users": settings.AUTH_SERVICE_URL,
     "/permissions": settings.AUTH_SERVICE_URL,
-    "/tenants": settings.TENANT_SERVICE_URL,
-    "/orders": settings.ORDER_SERVICE_URL,
+    "/tenants": settings.AUTH_SERVICE_URL,
+    # Add more as you create services
+    # "/orders": settings.ORDER_SERVICE_URL,
 }
 
 
@@ -51,7 +52,7 @@ async def proxy_to_service(request: Request, path: str):
     # Forward headers (add user context)
     headers = {
         "Authorization": authorization,
-        "X-User-ID": user_payload.get("sub"),
+        "X-User-ID": user_payload.get("sub", ""),
         "X-Tenant-ID": user_payload.get("tenant_id", ""),
         "X-User-Email": user_payload.get("email", ""),
     }

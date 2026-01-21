@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 import httpx
-from api_gateway.config import settings
+from config import settings
 
 router = APIRouter()
 
@@ -17,33 +17,27 @@ async def health_check():
 
 @router.get("/ready")
 async def readiness_check():
-    """Check if gateway and all services are ready"""
+    """Check if gateway and backend services are ready"""
     services_status = {}
     all_healthy = True
     
-    # Check each backend service
-    services = {
-        "auth": settings.AUTH_SERVICE_URL,
-        "tenant": settings.TENANT_SERVICE_URL,
-        "user": settings.USER_SERVICE_URL,
-        "order": settings.ORDER_SERVICE_URL,
-    }
+    # Check auth service
+    try:
+        async with httpx.AsyncClient(timeout=5.0) as client:
+            response = await client.get(f"{settings.AUTH_SERVICE_URL}/health")
+            services_status["auth"] = {
+                "status": "healthy" if response.status_code == 200 else "unhealthy",
+                "url": settings.AUTH_SERVICE_URL
+            }
+    except Exception as e:
+        services_status["auth"] = {
+            "status": "unreachable",
+            "url": settings.AUTH_SERVICE_URL,
+            "error": str(e)
+        }
+        all_healthy = False
     
-    async with httpx.AsyncClient(timeout=5.0) as client:
-        for service_name, service_url in services.items():
-            try:
-                response = await client.get(f"{service_url}/health")
-                services_status[service_name] = {
-                    "status": "healthy" if response.status_code == 200 else "unhealthy",
-                    "url": service_url
-                }
-            except Exception as e:
-                services_status[service_name] = {
-                    "status": "unreachable",
-                    "url": service_url,
-                    "error": str(e)
-                }
-                all_healthy = False
+    # Add more services here as you create them
     
     return {
         "status": "ready" if all_healthy else "degraded",

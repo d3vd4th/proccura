@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Session
-from auth_service.app.models.permission import Permission
+from app.models.permission import Permission
 
 PERMISSIONS = [
 

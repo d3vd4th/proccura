@@ -2,7 +2,7 @@ import time
 from collections import defaultdict
 from starlette.middleware.base import BaseHTTPMiddleware
 from fastapi import Request, HTTPException, status
-from api_gateway.config import settings
+from config import settings
 
 
 class RateLimitMiddleware(BaseHTTPMiddleware):

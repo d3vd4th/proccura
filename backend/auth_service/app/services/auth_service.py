@@ -1,8 +1,8 @@
 from sqlalchemy.orm import Session
 from fastapi import HTTPException, status
 
-from auth_service.app.models.user import User
-from auth_service.app.core.security import verify_password, create_access_token, decode_token,create_refresh_token
+from app.models.user import User
+from app.core.security import verify_password, create_access_token, decode_token,create_refresh_token
 from jose import JWTError
 
 def authenticate_user(db: Session, email: str, password: str) -> User:

@@ -1,12 +1,12 @@
 from fastapi import Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
-from auth_service.app.models.role_permission import RolePermission
-from auth_service.app.models.permission import Permission
-from auth_service.app.models.tenant_user import TenantUser
-from auth_service.app.dependencies.auth import get_current_user
-from auth_service.app.dependencies.tenant import get_current_tenant
-from auth_service.app.api.deps import get_db  
+from app.models.role_permission import RolePermission
+from app.models.permission import Permission
+from app.models.tenant_user import TenantUser
+from app.dependencies.auth import get_current_user
+from app.dependencies.tenant import get_current_tenant
+from app.api.deps import get_db  
 
 
 

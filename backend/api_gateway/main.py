@@ -2,12 +2,11 @@ from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 import logging
-import time
 
-from api_gateway.config import settings
-from api_gateway.middleware.logging import LoggingMiddleware
-from api_gateway.middleware.rate_limit import RateLimitMiddleware
-from api_gateway.routes import auth, proxy, health
+from config import settings
+from middleware.logging import LoggingMiddleware
+from middleware.rate_limit import RateLimitMiddleware
+from routes import auth, proxy, health
 
 # Configure logging
 logging.basicConfig(
@@ -25,7 +24,7 @@ app = FastAPI(
     redoc_url="/redoc" if settings.DEBUG else None,
 )
 
-# CORS Middleware
+# Setup CORS
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.CORS_ORIGINS,
@@ -72,6 +71,7 @@ async def startup_event():
     logger.info(f"Starting {settings.APP_NAME} v{settings.VERSION}")
     logger.info(f"Debug mode: {settings.DEBUG}")
     logger.info(f"Rate limiting: {settings.RATE_LIMIT_ENABLED}")
+    logger.info(f"Auth Service: {settings.AUTH_SERVICE_URL}")
 
 
 @app.on_event("shutdown")

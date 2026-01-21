@@ -2,7 +2,7 @@ import httpx
 import logging
 from typing import Optional, Dict, Any
 from fastapi import HTTPException
-from api_gateway.config import settings
+from config import settings
 
 logger = logging.getLogger(__name__)
 

@@ -1,6 +1,5 @@
-from pydantic_settings import BaseSettings
-from typing import List
-
+from pydantic_settings import BaseSettings, SettingsConfigDict
+from typing import List, Optional
 
 class Settings(BaseSettings):
     # Gateway Config
@@ -9,7 +8,7 @@ class Settings(BaseSettings):
     DEBUG: bool = False
     HOST: str = "0.0.0.0"
     PORT: int = 8000
-    
+
     # CORS
     CORS_ORIGINS: List[str] = [
         "http://localhost:3000",
@@ -19,31 +18,29 @@ class Settings(BaseSettings):
     CORS_ALLOW_CREDENTIALS: bool = True
     CORS_ALLOW_METHODS: List[str] = ["*"]
     CORS_ALLOW_HEADERS: List[str] = ["*"]
-    
+
     # JWT
-    JWT_SECRET_KEY: str = "your-secret-key-change-in-production"
+    JWT_SECRET_KEY: str
     JWT_ALGORITHM: str = "HS256"
-    
+    SERVICE_TIMEOUT: int = 30
     # Rate Limiting
     RATE_LIMIT_ENABLED: bool = True
     RATE_LIMIT_REQUESTS: int = 100
-    RATE_LIMIT_PERIOD: int = 60  # seconds
-    
-    # Service URLs (Internal - not exposed to public)
+    RATE_LIMIT_PERIOD: int = 60
+
+    # 🔑 INTERNAL SERVICES (THIS IS THE FIX)
     AUTH_SERVICE_URL: str = "http://localhost:8001"
-    TENANT_SERVICE_URL: str = "http://localhost:8002"
-    USER_SERVICE_URL: str = "http://localhost:8003"
-    ORDER_SERVICE_URL: str = "http://localhost:8004"
-    
-    # Timeouts
-    SERVICE_TIMEOUT: int = 30  # seconds
-    
+    TENANT_SERVICE_URL: Optional[str] = None
+    USER_SERVICE_URL: Optional[str] = None
+    ORDER_SERVICE_URL: Optional[str] = None
+
     # Logging
     LOG_LEVEL: str = "INFO"
-    
-    class Config:
-        env_file = ".env"
-        case_sensitive = True
+
+    model_config = SettingsConfigDict(
+        env_file=".env",
+        case_sensitive=True,
+    )
 
 
 settings = Settings()

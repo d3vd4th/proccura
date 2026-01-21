@@ -1,7 +1,7 @@
 import uuid
 from sqlalchemy import Column, String, Boolean, DateTime
 from sqlalchemy.sql import func
-from auth_service.app.core.database import Base
+from app.core.database import Base
 
 class User(Base):
     __tablename__ = "users"

@@ -1,11 +1,11 @@
 from fastapi import Depends, Header, HTTPException, status
 from sqlalchemy.orm import Session
 
-from auth_service.app.models.tenant import Tenant
-from auth_service.app.models.tenant_user import TenantUser
-from auth_service.app.models.user import User
-from auth_service.app.dependencies.auth import get_current_user
-from auth_service.app.api.deps import get_db  
+from app.models.tenant import Tenant
+from app.models.tenant_user import TenantUser
+from app.models.user import User
+from app.dependencies.auth import get_current_user
+from app.api.deps import get_db  
 
 
 

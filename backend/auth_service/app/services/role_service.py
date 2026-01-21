@@ -1,6 +1,6 @@
 from sqlalchemy.orm import Session
-from auth_service.app.models.role import Role
-from auth_service.app.models.role_permission import RolePermission
+from app.models.role import Role
+from app.models.role_permission import RolePermission
 
 
 def create_role(db: Session, tenant_id: str, payload):

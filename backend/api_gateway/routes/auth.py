@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Request
 from typing import Dict, Any
-from api_gateway.config import settings
-from api_gateway.utils.http_client import service_client
+from config import settings
+from utils.http_client import service_client
 
 router = APIRouter()
 
@@ -21,19 +21,6 @@ async def login(request: Request):
     return response
 
 
-@router.post("/register")
-async def register(request: Request):
-    """Proxy registration request to auth service"""
-    body = await request.json()
-    
-    response = await service_client.proxy_request(
-        service_url=settings.AUTH_SERVICE_URL,
-        path="/api/v1/auth/register",
-        method="POST",
-        json=body
-    )
-    
-    return response
 
 
 @router.post("/refresh")

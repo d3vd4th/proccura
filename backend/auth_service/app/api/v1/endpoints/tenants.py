@@ -1,14 +1,14 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
-from auth_service.app.schemas.tenant import (
+from app.schemas.tenant import (
     TenantCreate, TenantUpdate, TenantResponse
 )
-from auth_service.app.services.tenant_service import (
+from app.services.tenant_service import (
     create_tenant, update_tenant, get_tenant, list_tenants
 )
-from auth_service.app.dependencies.auth import require_super_admin
-from auth_service.app.api.deps import get_db  
+from app.dependencies.auth import require_super_admin
+from app.api.deps import get_db  
 
 
 router = APIRouter()  

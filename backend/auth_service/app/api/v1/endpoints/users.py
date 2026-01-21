@@ -1,20 +1,20 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
-from auth_service.app.schemas.user import (
+from app.schemas.user import (
     UserCreate,
     UserUpdate,
     UserResponse,
 )
-from auth_service.app.services.user_service import (
+from app.services.user_service import (
     create_user,
     list_users,
     update_user,
 )
-from auth_service.app.dependencies.tenant import get_current_tenant
-from auth_service.app.dependencies.permissions import require_permission
-from auth_service.app.models.user import User
-from auth_service.app.api.deps import get_db  
+from app.dependencies.tenant import get_current_tenant
+from app.dependencies.permissions import require_permission
+from app.models.user import User
+from app.api.deps import get_db  
 
 
 router = APIRouter()  

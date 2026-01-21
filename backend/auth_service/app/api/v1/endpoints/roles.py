@@ -1,22 +1,22 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
-from auth_service.app.schemas.role import (
+from app.schemas.role import (
     RoleCreate,
     RoleUpdate,
     RoleResponse,
     RolePermissionUpdate,
 )
-from auth_service.app.services.role_service import (
+from app.services.role_service import (
     create_role,
     list_roles,
     update_role,
     replace_role_permissions,
 )
-from auth_service.app.dependencies.tenant import get_current_tenant
-from auth_service.app.dependencies.permissions import require_permission
-from auth_service.app.models.role import Role
-from auth_service.app.api.deps import get_db  
+from app.dependencies.tenant import get_current_tenant
+from app.dependencies.permissions import require_permission
+from app.models.role import Role
+from app.api.deps import get_db  
 
 
 router = APIRouter()  

@@ -1,5 +1,5 @@
 from sqlalchemy import Column, String, ForeignKey, UniqueConstraint
-from auth_service.app.core.database import Base
+from app.core.database import Base
 
 class RolePermission(Base):
     __tablename__ = "role_permissions"

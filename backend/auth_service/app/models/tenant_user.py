@@ -2,7 +2,7 @@ import enum
 import uuid
 from sqlalchemy import Column, Enum, String, ForeignKey, DateTime, UniqueConstraint
 from sqlalchemy.sql import func
-from auth_service.app.core.database import Base
+from app.core.database import Base
 
 class TenantUserStatus(enum.Enum):
     INVITED = "invited"

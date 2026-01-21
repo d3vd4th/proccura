@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Session
-from auth_service.app.models.tenant import Tenant
+from app.models.tenant import Tenant
 
 
 def create_tenant(db: Session, data):

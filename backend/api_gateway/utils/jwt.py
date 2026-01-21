@@ -1,7 +1,7 @@
 import jwt
 from datetime import datetime
 from fastapi import HTTPException, status
-from api_gateway.config import settings
+from config import settings
 
 
 def verify_token(token: str) -> dict:
