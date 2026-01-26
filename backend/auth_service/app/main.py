@@ -31,12 +31,6 @@ def root():
     }
 
 
-@app.get("/health")
-def health_check():
-    """Health check endpoint for API Gateway"""
-    return {"status": "healthy", "service": "auth"}
-
-
 @app.get("/ready")
 def readiness_check():
     """Readiness check - ensures DB connection"""

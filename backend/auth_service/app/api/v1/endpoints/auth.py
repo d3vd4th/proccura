@@ -28,3 +28,8 @@ def refresh_token(
         "access_token": access_token,
         "token_type": "bearer"
     }
+
+@router.get("/health")
+def health_check():
+    """Health check endpoint for API Gateway"""
+    return {"status": "healthy", "service": "auth"}
