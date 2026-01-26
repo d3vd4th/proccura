@@ -1,46 +1,15 @@
 from pydantic_settings import BaseSettings, SettingsConfigDict
-from typing import List, Optional
 
 class Settings(BaseSettings):
-    # Gateway Config
     APP_NAME: str = "Proccura API Gateway"
-    VERSION: str = "1.0.0"
-    DEBUG: bool = False
     HOST: str = "0.0.0.0"
     PORT: int = 8000
 
-    # CORS
-    CORS_ORIGINS: List[str] = [
-        "http://localhost:3000",
-        "http://localhost:5173",
-        "http://localhost:8080",
-    ]
-    CORS_ALLOW_CREDENTIALS: bool = True
-    CORS_ALLOW_METHODS: List[str] = ["*"]
-    CORS_ALLOW_HEADERS: List[str] = ["*"]
+    AUTH_SERVICE_URL: str
+    TENANT_SERVICE_URL: str
+    USER_SERVICE_URL: str
+    ORDER_SERVICE_URL: str
 
-    # JWT
-    JWT_SECRET_KEY: str
-    JWT_ALGORITHM: str = "HS256"
-    SERVICE_TIMEOUT: int = 30
-    # Rate Limiting
-    RATE_LIMIT_ENABLED: bool = True
-    RATE_LIMIT_REQUESTS: int = 100
-    RATE_LIMIT_PERIOD: int = 60
-
-    # 🔑 INTERNAL SERVICES (THIS IS THE FIX)
-    AUTH_SERVICE_URL: str = "http://localhost:8001"
-    TENANT_SERVICE_URL: Optional[str] = None
-    USER_SERVICE_URL: Optional[str] = None
-    ORDER_SERVICE_URL: Optional[str] = None
-
-    # Logging
-    LOG_LEVEL: str = "INFO"
-
-    model_config = SettingsConfigDict(
-        env_file=".env",
-        case_sensitive=True,
-    )
-
+    model_config = SettingsConfigDict(env_file=".env")
 
 settings = Settings()
