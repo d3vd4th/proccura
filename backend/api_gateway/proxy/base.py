@@ -10,17 +10,7 @@ async def proxy_request(
     target_base_url: str, 
     path: str
 ) -> Response:
-    """
-    Generic proxy function that forwards requests to backend services.
-    
-    Args:
-        request: FastAPI request object
-        target_base_url: Base URL of target service (e.g., http://localhost:8001)
-        path: Path to append to base URL (e.g., /api/v1/auth/login)
-    
-    Returns:
-        Response from backend service
-    """
+
     # Build full URL
     full_url = f"{target_base_url}{path}"
     
