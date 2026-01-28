@@ -1,4 +1,5 @@
 from pydantic import BaseModel, EmailStr
+from typing import Optional
 
 
 class LoginRequest(BaseModel):
@@ -6,10 +7,22 @@ class LoginRequest(BaseModel):
     password: str
 
 
+class UserLogin(BaseModel):
+    id: str
+    email: EmailStr
+    first_name: Optional[str] = None
+    last_name: Optional[str] = None
+    is_active: bool
+    is_super_admin: bool
+
+    class Config:
+        from_attributes = True
+
+
 class TokenResponse(BaseModel):
+    user: UserLogin
     access_token: str
     refresh_token: str
-    token_type: str = "bearer"
 
 
 class RefreshTokenRequest(BaseModel):
