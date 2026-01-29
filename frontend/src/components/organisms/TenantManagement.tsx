@@ -1,71 +1,69 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Trash2, Edit, Loader2 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, Button, useToast } from '@/components/atoms';
-import { DataTable, TableFilter, AddUserForm } from '@/components/molecules';
-import { usersAPI, CreateUserData } from '@/api/users';
-import { UserData } from '@/types/configure';
+import { DataTable, TableFilter, AddTenantForm } from '@/components/molecules';
+import { tenantsAPI, CreateTenantData } from '@/api/tenants';
+import { TenantData } from '@/types/configure';
 
-export const UserManagement = () => {
-    const [users, setUsers] = useState<UserData[]>([]);
+export const TenantManagement = () => {
+    const [tenants, setTenants] = useState<TenantData[]>([]);
     const [showAddForm, setShowAddForm] = useState(false);
     const [currentPage, setCurrentPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
     const [search, setSearch] = useState('');
     const [statusFilter, setStatusFilter] = useState('');
-    const [roleFilter, setRoleFilter] = useState('');
     const [isLoading, setIsLoading] = useState(true);
     const [isDeleting, setIsDeleting] = useState<string | null>(null);
     const { toast } = useToast();
 
     const itemsPerPage = 10;
 
-    const fetchUsers = useCallback(async () => {
+    const fetchTenants = useCallback(async () => {
         setIsLoading(true);
         try {
-            const response = await usersAPI.getAll({
+            const response = await tenantsAPI.getAll({
                 page: currentPage,
                 limit: itemsPerPage,
                 search: search || undefined,
                 status: statusFilter || undefined,
-                role: roleFilter || undefined,
             });
-            setUsers(response.users);
+            setTenants(response.tenants);
             setTotalPages(Math.ceil(response.total / itemsPerPage));
         } catch (err: any) {
-            toast.error(err.response?.data?.message || 'Failed to fetch users');
-            console.error('Error fetching users:', err);
+            toast.error(err.response?.data?.message || 'Failed to fetch tenants');
+            console.error('Error fetching tenants:', err);
         } finally {
             setIsLoading(false);
         }
-    }, [currentPage, search, statusFilter, roleFilter]);
+    }, [currentPage, search, statusFilter]);
 
     useEffect(() => {
-        fetchUsers();
-    }, [fetchUsers]);
+        fetchTenants();
+    }, [fetchTenants]);
 
-    const handleAddUser = async (data: CreateUserData) => {
+    const handleAddTenant = async (data: CreateTenantData) => {
         try {
-            await usersAPI.create(data);
+            await tenantsAPI.create(data);
             setShowAddForm(false);
-            toast.success('User created successfully!');
-            fetchUsers();
+            toast.success('Tenant created successfully!');
+            fetchTenants();
         } catch (err: any) {
-            toast.error(err.response?.data?.message || 'Failed to create user');
-            console.error('Error creating user:', err);
+            toast.error(err.response?.data?.message || 'Failed to create tenant');
+            console.error('Error creating tenant:', err);
         }
     };
 
-    const handleDeleteUser = async (userId: string) => {
-        if (!confirm('Are you sure you want to delete this user?')) return;
+    const handleDeleteTenant = async (tenantId: string) => {
+        if (!confirm('Are you sure you want to delete this tenant?')) return;
 
-        setIsDeleting(userId);
+        setIsDeleting(tenantId);
         try {
-            await usersAPI.delete(userId);
-            toast.success('User deleted successfully!');
-            fetchUsers();
+            await tenantsAPI.delete(tenantId);
+            toast.success('Tenant deleted successfully!');
+            fetchTenants();
         } catch (err: any) {
-            toast.error(err.response?.data?.message || 'Failed to delete user');
-            console.error('Error deleting user:', err);
+            toast.error(err.response?.data?.message || 'Failed to delete tenant');
+            console.error('Error deleting tenant:', err);
         } finally {
             setIsDeleting(null);
         }
@@ -79,8 +77,6 @@ export const UserManagement = () => {
     const handleFilterChange = (key: string, value: string) => {
         if (key === 'status') {
             setStatusFilter(value);
-        } else if (key === 'role') {
-            setRoleFilter(value);
         }
         setCurrentPage(1);
     };
@@ -88,7 +84,6 @@ export const UserManagement = () => {
     const handleClearFilters = () => {
         setSearch('');
         setStatusFilter('');
-        setRoleFilter('');
         setCurrentPage(1);
     };
 
@@ -97,13 +92,13 @@ export const UserManagement = () => {
             <Card>
                 <CardHeader className="flex flex-row items-center justify-between">
                     <div>
-                        <CardTitle>User Management</CardTitle>
+                        <CardTitle>Tenant Management</CardTitle>
                     </div>
-                    <Button onClick={() => setShowAddForm(true)}>Add User</Button>
+                    <Button onClick={() => setShowAddForm(true)}>Add Tenant</Button>
                 </CardHeader>
                 <CardContent className="space-y-4">
                     <TableFilter
-                        searchPlaceholder="Search users..."
+                        searchPlaceholder="Search tenants..."
                         onSearchChange={handleSearchChange}
                         filterOptions={[
                             {
@@ -112,14 +107,6 @@ export const UserManagement = () => {
                                 options: [
                                     { value: 'active', label: 'Active' },
                                     { value: 'inactive', label: 'Inactive' },
-                                ],
-                            },
-                            {
-                                key: 'role',
-                                label: 'Role',
-                                options: [
-                                    { value: 'admin', label: 'Admin' },
-                                    { value: 'user', label: 'User' },
                                 ],
                             },
                         ]}
@@ -134,9 +121,9 @@ export const UserManagement = () => {
                     ) : (
                         <DataTable
                             columns={[
+                                { key: 'name', label: 'Tenant Name' },
                                 { key: 'email', label: 'Email' },
-                                { key: 'name', label: 'Name' },
-                                { key: 'role', label: 'Role' },
+                                { key: 'phone', label: 'Phone' },
                                 {
                                     key: 'status',
                                     label: 'Status',
@@ -153,21 +140,21 @@ export const UserManagement = () => {
                                 },
                                 { key: 'createdAt', label: 'Created' },
                             ]}
-                            data={users}
+                            data={tenants}
                             totalPages={totalPages}
                             currentPage={currentPage}
                             onPageChange={setCurrentPage}
-                            actions={(user) => (
+                            actions={(tenant) => (
                                 <div className="flex gap-2">
                                     <button className="text-blue-600 hover:text-blue-800">
                                         <Edit className="h-4 w-4" />
                                     </button>
                                     <button
                                         className="text-red-600 hover:text-red-800 disabled:opacity-50"
-                                        onClick={() => handleDeleteUser(user.id)}
-                                        disabled={isDeleting === user.id}
+                                        onClick={() => handleDeleteTenant(tenant.id)}
+                                        disabled={isDeleting === tenant.id}
                                     >
-                                        {isDeleting === user.id ? (
+                                        {isDeleting === tenant.id ? (
                                             <Loader2 className="h-4 w-4 animate-spin" />
                                         ) : (
                                             <Trash2 className="h-4 w-4" />
@@ -181,8 +168,8 @@ export const UserManagement = () => {
             </Card>
 
             {showAddForm && (
-                <AddUserForm
-                    onSubmit={handleAddUser}
+                <AddTenantForm
+                    onSubmit={handleAddTenant}
                     onClose={() => setShowAddForm(false)}
                 />
             )}

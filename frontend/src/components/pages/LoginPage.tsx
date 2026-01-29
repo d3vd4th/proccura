@@ -5,7 +5,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { loginUser, clearError } from '@/store/slices/authSlice';
-import { Button, Input, Label, Alert, AlertDescription, AlertTitle } from '@/components/atoms';
+import { Button, Input, Label, Alert, AlertDescription, AlertTitle, useToast } from '@/components/atoms';
 import { Mail, Lock, AlertCircle, Loader2, Zap, ShoppingCart } from 'lucide-react';
 
 const loginSchema = z.object({
@@ -20,6 +20,7 @@ const LoginPage = () => {
     const dispatch = useAppDispatch();
     const { isLoading, error, isAuthenticated } = useAppSelector((state) => state.auth);
     const [showPassword, setShowPassword] = useState(false);
+    const { toast } = useToast();
 
     const { register, handleSubmit, formState: { errors } } = useForm<LoginFormData>({
         resolver: zodResolver(loginSchema),
@@ -37,8 +38,8 @@ const LoginPage = () => {
 
     const onSubmit = async (data: LoginFormData) => {
         const result = await dispatch(loginUser({ email: data.email, password: data.password }));
-        console.log("login Result ",result);
         if (loginUser.fulfilled.match(result)) {
+            toast.success('Welcome back!', 'Login successful');
             navigate('/dashboard');
         }
     };
@@ -104,7 +105,7 @@ const LoginPage = () => {
                             )}
                         </div>
 
-                        <Button type="submit" size="lg" disabled={isLoading} className="w-full">
+                        <Button type="submit" size="lg" disabled={isLoading} className="w-full bg-[#0B1D51] hover:bg-[#0A1A45]">
                             {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                             Sign in
                         </Button>
@@ -115,7 +116,7 @@ const LoginPage = () => {
                 </div>
             </div>
 
-            <div className="hidden lg:flex lg:flex-1 bg-gradient-to-br from-primary to-primary/80 items-center justify-center p-12">
+            <div className="hidden lg:flex lg:flex-1 bg-gradient-to-br from-[#0B1D51] to-[#0B1D51]/80 items-center justify-center p-12">
                 <div className="max-w-md text-center">
                     <div className="mb-8">
                         <div className="w-64 h-64 mx-auto bg-white/10 rounded-full flex items-center justify-center backdrop-blur-sm">

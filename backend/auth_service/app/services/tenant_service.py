@@ -23,4 +23,6 @@ def get_tenant(db: Session, tenant_id: str):
 
 
 def list_tenants(db: Session):
-    return db.query(Tenant).order_by(Tenant.created_at.desc()).all()
+    tenants = db.query(Tenant).order_by(Tenant.created_at.desc()).all()
+    print(f"Found {len(tenants)} tenants")
+    return tenants

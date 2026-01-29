@@ -5,9 +5,11 @@ from app.models.user import User
 from app.core.security import verify_password, create_access_token, decode_token,create_refresh_token
 from jose import JWTError
 
+from    app.models.tenant_user import TenantUser
+
 def authenticate_user(db: Session, email: str, password: str) -> User:
     user = db.query(User).filter(User.email == email).first()
-
+    
     if not user or not user.is_active:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -18,7 +20,12 @@ def authenticate_user(db: Session, email: str, password: str) -> User:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid credentials"
-        ) 
+        )
+    
+    # Get tenant_id - query returns tuple, extract the value
+    tenant_result = db.query(TenantUser.tenant_id).filter(TenantUser.user_id == user.id).first()
+    print(tenant_result)
+    user.tenant_id = tenant_result[0] if tenant_result else None
 
     return user
 

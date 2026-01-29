@@ -4,6 +4,7 @@ export interface User {
   name?: string;
   role?: string;
   is_super_admin?: boolean;
+  tenant_id?: string;
 }
 
 export interface LoginCredentials {
@@ -20,6 +21,7 @@ export interface RegisterData {
 export interface AuthResponse {
   access_token: string;
   refresh_token?: string;
+  tenant_id?: string;
   user: User;
 }
 

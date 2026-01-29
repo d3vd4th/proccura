@@ -26,6 +26,11 @@ export const loginUser = createAsyncThunk(
       if (data.refresh_token) {
         localStorage.setItem('refresh_token', data.refresh_token);
       }
+      // Store tenant_id from response or user object
+      const tenantId = data.tenant_id || data.user.tenant_id;
+      if (tenantId) {
+        localStorage.setItem('tenant_id', tenantId);
+      }
       return data.user;
     } catch (error: any) {
       const errorMessage = error.response?.data?.detail || 'Login failed';

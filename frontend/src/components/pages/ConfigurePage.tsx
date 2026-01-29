@@ -1,13 +1,13 @@
 import { useState } from 'react';
 import { useAppSelector } from '@/store/hooks';
-import { UserManagement, RoleManagement, CustomerManagement } from '@/components/organisms';
+import { UserManagement, RoleManagement, TenantManagement } from '@/components/organisms';
 import {
     Tabs,
     TabsContent,
     TabsList,
     TabsTrigger,
 } from '@/components/ui/tabs';
-type TabType = 'users' | 'roles' | 'customers';
+type TabType = 'users' | 'roles' | 'tenants';
 
 export const ConfigurePage = () => {
     const { user } = useAppSelector((state) => state.auth);
@@ -22,23 +22,23 @@ export const ConfigurePage = () => {
                 <TabsList>
                     <TabsTrigger value="users">Users</TabsTrigger>
                     <TabsTrigger value="roles">Roles</TabsTrigger>
-                    {isSuperAdmin && <TabsTrigger value="customers">Customers</TabsTrigger>}
+                    {isSuperAdmin && <TabsTrigger value="tenants">Tenants</TabsTrigger>}
                 </TabsList>
 
                 {/* Tab Content */}
                 <TabsContent value="users">
-                    
-                            <UserManagement />
+
+                    <UserManagement />
                 </TabsContent>
 
                 <TabsContent value="roles">
-                   
-                            <RoleManagement />
+
+                    <RoleManagement />
                 </TabsContent>
 
                 {isSuperAdmin && (
-                    <TabsContent value="customers">
-                                <CustomerManagement />
+                    <TabsContent value="tenants">
+                        <TenantManagement />
                     </TabsContent>
                 )}
             </Tabs>

@@ -17,6 +17,7 @@ def create_user(
             email=payload.email,
             full_name=payload.full_name,
             password_hash=hash_password(payload.password),
+            profile_pic_url=payload.profile_pic_url,
             is_active=True,
         )
         db.add(user)
@@ -66,6 +67,8 @@ def update_user(db: Session, user: User, payload):
         user.full_name = payload.full_name
     if payload.is_active is not None:
         user.is_active = payload.is_active
+    if payload.profile_pic_url is not None:
+        user.profile_pic_url = payload.profile_pic_url
 
     db.commit()
     db.refresh(user)

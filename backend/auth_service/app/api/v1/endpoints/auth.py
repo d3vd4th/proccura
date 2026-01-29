@@ -19,7 +19,9 @@ def login(payload: LoginRequest, db: Session = Depends(get_db)):
             "first_name": user.first_name,
             "last_name": user.last_name,
             "is_active": user.is_active,
-            "is_super_admin": user.is_super_admin
+            "is_super_admin": user.is_super_admin,
+            "profile_pic_url": user.profile_pic_url,
+            "tenant_id": user.tenant_id,
         },
         "access_token": access_token,
         "refresh_token": refresh_token

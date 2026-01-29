@@ -2,12 +2,12 @@ import { useState } from 'react';
 import { X } from 'lucide-react';
 import { Button, Input, Label } from '@/components/atoms';
 
-interface AddCustomerFormProps {
+interface AddTenantFormProps {
     onSubmit: (data: any) => void;
     onClose: () => void;
 }
 
-export const AddCustomerForm = ({ onSubmit, onClose }: AddCustomerFormProps) => {
+export const AddTenantForm = ({ onSubmit, onClose }: AddTenantFormProps) => {
     const [formData, setFormData] = useState({
         name: '',
         email: '',
@@ -25,7 +25,7 @@ export const AddCustomerForm = ({ onSubmit, onClose }: AddCustomerFormProps) => 
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
             <div className="bg-card rounded-lg p-6 w-full max-w-md">
                 <div className="flex justify-between items-center mb-6">
-                    <h2 className="text-lg font-semibold">Add New Customer</h2>
+                    <h2 className="text-lg font-semibold">Add New Tenant</h2>
                     <button onClick={onClose} className="text-muted-foreground hover:text-foreground">
                         <X className="h-5 w-5" />
                     </button>
@@ -33,7 +33,7 @@ export const AddCustomerForm = ({ onSubmit, onClose }: AddCustomerFormProps) => 
 
                 <form onSubmit={handleSubmit} className="space-y-4">
                     <div className="space-y-2">
-                        <Label htmlFor="name">Customer Name</Label>
+                        <Label htmlFor="name">Tenant Name</Label>
                         <Input
                             id="name"
                             placeholder="Company name"
@@ -50,7 +50,7 @@ export const AddCustomerForm = ({ onSubmit, onClose }: AddCustomerFormProps) => 
                         <Input
                             id="email"
                             type="email"
-                            placeholder="customer@example.com"
+                            placeholder="tenant@example.com"
                             value={formData.email}
                             onChange={(e) =>
                                 setFormData({ ...formData, email: e.target.value })
@@ -89,7 +89,7 @@ export const AddCustomerForm = ({ onSubmit, onClose }: AddCustomerFormProps) => 
                         <Button variant="outline" onClick={onClose} type="button">
                             Cancel
                         </Button>
-                        <Button type="submit">Add Customer</Button>
+                        <Button type="submit">Add Tenant</Button>
                     </div>
                 </form>
             </div>

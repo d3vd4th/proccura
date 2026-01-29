@@ -13,8 +13,13 @@ const apiClient = axios.create({
 apiClient.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('access_token');
+    const tenantId = localStorage.getItem('tenant_id');
+
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
+    }
+    if (tenantId) {
+      config.headers['X-Tenant-ID'] = tenantId;
     }
     return config;
   },

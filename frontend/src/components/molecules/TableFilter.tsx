@@ -10,7 +10,7 @@ import {
 interface FilterProps {
     searchPlaceholder?: string;
     onSearchChange: (value: string) => void;
-    onFilterChange?: (filters: Record<string, string>) => void;
+    onFilterChange?: (key: string, value: string) => void;
     filterOptions?: Array<{
         key: string;
         label: string;
@@ -54,7 +54,7 @@ export const TableFilter = ({
                             <DropdownMenuContent align="start">
                                 <DropdownMenuItem
                                     onClick={() =>
-                                        onFilterChange?.({ [filter.key]: '' })
+                                        onFilterChange?.(filter.key, '')
                                     }
                                     className="cursor-pointer"
                                 >
@@ -64,7 +64,7 @@ export const TableFilter = ({
                                     <DropdownMenuItem
                                         key={opt.value}
                                         onClick={() =>
-                                            onFilterChange?.({ [filter.key]: opt.value })
+                                            onFilterChange?.(filter.key, opt.value)
                                         }
                                         className="cursor-pointer"
                                     >

@@ -14,7 +14,8 @@ class UserLogin(BaseModel):
     last_name: Optional[str] = None
     is_active: bool
     is_super_admin: bool
-
+    profile_pic_url: Optional[str] = None
+    tenant_id: Optional[str] = None
     class Config:
         from_attributes = True
 

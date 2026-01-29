@@ -19,21 +19,16 @@ export interface RoleData {
     createdAt: string;
 }
 
-export interface CustomerData {
-    id: string;
-    name: string;
-    email: string;
-    phone: string;
-    address: string;
-    status: 'active' | 'inactive';
-    createdAt: string;
-}
-
 export interface TenantData {
     id: string;
     name: string;
+    email?: string;
+    phone?: string;
+    address?: string;
     logo?: string;
-    isActive: boolean;
+    status?: 'active' | 'inactive';
+    isActive?: boolean;
+    createdAt?: string;
 }
 
 export interface FilterOptions {

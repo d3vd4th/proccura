@@ -1,6 +1,6 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, logger, status
 from sqlalchemy.orm import Session
-
+import logging
 from app.schemas.tenant import (
     TenantCreate, TenantUpdate, TenantResponse
 )
@@ -10,7 +10,8 @@ from app.services.tenant_service import (
 from app.dependencies.auth import require_super_admin
 from app.api.deps import get_db  
 
-
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 router = APIRouter()  
 
 @router.post("/create", response_model=TenantResponse, status_code=201)
@@ -40,8 +41,10 @@ def update_tenant_api(
 def list_tenants_api(
     db: Session = Depends(get_db),
     _=Depends(require_super_admin)
-):
-    return list_tenants(db)
+):   
+    tenants = list_tenants(db)
+    logger.info(f"Listed {len(tenants)} tenants")
+    return tenants
 
 
 @router.get("/{tenant_id}", response_model=TenantResponse)

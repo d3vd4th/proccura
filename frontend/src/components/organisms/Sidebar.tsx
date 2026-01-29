@@ -28,52 +28,52 @@ const navigation: NavItem[] = [
     },
     {
         title: 'PR & SR',
-        href: '/dashboard/pr-sr',
+        href: '/pr-sr',
         icon: FileText,
     },
     {
         title: 'RFQ & RFP',
-        href: '/dashboard/rfq-rfp',
+        href: '/rfq-rfp',
         icon: MessageSquare,
     },
     {
         title: 'Quotations',
-        href: '/dashboard/quotations',
+        href: '/quotations',
         icon: FileSpreadsheet,
     },
     {
         title: 'Purchase Orders',
-        href: '/dashboard/purchase-orders',
+        href: '/purchase-orders',
         icon: ShoppingCart,
     },
     {
         title: 'Invoices',
-        href: '/dashboard/invoices',
+        href: '/invoices',
         icon: Receipt,
     },
     {
         title: 'Vendors',
-        href: '/dashboard/vendors',
+        href: '/vendors',
         icon: Users,
     },
     {
         title: 'Payments',
-        href: '/dashboard/payments',
+        href: '/payments',
         icon: CreditCard,
     },
     {
         title: 'Queries',
-        href: '/dashboard/queries',
+        href: '/queries',
         icon: HelpCircle,
     },
     {
         title: 'Reports',
-        href: '/dashboard/reports',
+        href: '/reports',
         icon: BarChart3,
     },
     {
         title: 'Configure',
-        href: '/dashboard/configure',
+        href: '/configure',
         icon: Settings,
     },
 ];
@@ -115,7 +115,6 @@ export const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
                                 key={item.href}
                                 to={item.href}
                                 onClick={() => onClose()}
-                                end={item.href === '/dashboard'}
                                 className={({ isActive }) =>
                                     cn(
                                         'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium ',
@@ -125,8 +124,12 @@ export const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
                                     )
                                 }
                             >
-                                <item.icon className="h-5 w-5 text-primary" />
-                                <span>{item.title}</span>
+                                {({ isActive }) => (
+                                    <>
+                                        <item.icon className={cn('h-5 w-5', isActive && 'text-primary')} />
+                                        <span>{item.title}</span>
+                                    </>
+                                )}
                             </NavLink>
                         ))}
                     </nav>

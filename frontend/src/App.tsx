@@ -1,8 +1,24 @@
+
 import { useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { loadUser } from '@/store/slices/authSlice';
-import { LoginPage, DashboardHome, ConfigurePage, DashboardLayout } from '@/components';
+import { ToastProvider, ThemeProvider } from '@/components/atoms';
+import {
+  LoginPage,
+  DashboardHome,
+  ConfigurePage,
+  DashboardLayout,
+  PrSrPage,
+  RfqRfpPage,
+  QuotationsPage,
+  PurchaseOrdersPage,
+  InvoicesPage,
+  VendorsPage,
+  PaymentsPage,
+  QueriesPage,
+  ReportsPage,
+} from '@/components';
 
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
@@ -42,22 +58,32 @@ function App() {
   }, [dispatch]);
 
   return (
-    <BrowserRouter>
-      <Routes>
-        <Route path="/login" element={<PublicRoute><LoginPage /></PublicRoute>} />
+    <ThemeProvider defaultTheme="light" storageKey="proccura-ui-theme">
+      <ToastProvider>
+        <BrowserRouter>
+          <Routes>
+            <Route path="/login" element={<PublicRoute><LoginPage /></PublicRoute>} />
 
-        {/* Protected routes with layout */}
-        <Route path="/dashboard" element={<ProtectedRoute><DashboardLayout /></ProtectedRoute>}>
-          <Route index element={<DashboardHome />} />
-          <Route path="configure" element={<ConfigurePage />} />
-          {/* Add more nested routes here */}
-          {/* <Route path="profile" element={<ProfilePage />} /> */}
-          {/* <Route path="settings" element={<SettingsPage />} /> */}
-        </Route>
+            {/* Protected routes with layout */}
+            <Route element={<ProtectedRoute><DashboardLayout /></ProtectedRoute>}>
+              <Route path="/dashboard" element={<DashboardHome />} />
+              <Route path="/pr-sr" element={<PrSrPage />} />
+              <Route path="/rfq-rfp" element={<RfqRfpPage />} />
+              <Route path="/quotations" element={<QuotationsPage />} />
+              <Route path="/purchase-orders" element={<PurchaseOrdersPage />} />
+              <Route path="/invoices" element={<InvoicesPage />} />
+              <Route path="/vendors" element={<VendorsPage />} />
+              <Route path="/payments" element={<PaymentsPage />} />
+              <Route path="/queries" element={<QueriesPage />} />
+              <Route path="/reports" element={<ReportsPage />} />
+              <Route path="/configure" element={<ConfigurePage />} />
+            </Route>
 
-        <Route path="/" element={<Navigate to="/login" replace />} />
-      </Routes>
-    </BrowserRouter>
+            <Route path="/" element={<Navigate to="/login" replace />} />
+          </Routes>
+        </BrowserRouter>
+      </ToastProvider>
+    </ThemeProvider>
   );
 }
 

@@ -1,10 +1,9 @@
-import { useState } from 'react';
-import { Menu, Bell, Settings, LogOut, User } from 'lucide-react';
-import { Button } from '@/components/atoms';
+import { useState, useEffect } from 'react';
+import { Menu, Bell, LogOut, User, Settings } from 'lucide-react';
+import { Button, ThemeToggle } from '@/components/atoms';
 import { SearchField, TenantSwitcher } from '@/components/molecules';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { logoutUser } from '@/store/slices/authSlice';
-import { TenantData } from '@/types/configure';
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -18,17 +17,32 @@ interface NavbarProps {
     onMenuClick: () => void;
 }
 
-const DEFAULT_TENANT: TenantData = {
-    id: '1',
-    name: 'Acme Corp',
-    isActive: true,
-};
+interface Tenant {
+    id: string;
+    name: string;
+}
 
 export const Navbar = ({ onMenuClick }: NavbarProps) => {
     const dispatch = useAppDispatch();
     const { user } = useAppSelector((state) => state.auth);
-    const [currentTenant, setCurrentTenant] = useState<TenantData>(DEFAULT_TENANT);
+    const [currentTenant, setCurrentTenant] = useState<Tenant | null>(null);
     const isSuperAdmin = user?.is_super_admin === true;
+
+    // Load tenant from localStorage on mount
+    useEffect(() => {
+        const storedTenantId = localStorage.getItem('tenant_id');
+        const storedTenantName = localStorage.getItem('tenant_name');
+        if (storedTenantId && storedTenantName) {
+            setCurrentTenant({ id: storedTenantId, name: storedTenantName });
+        }
+    }, []);
+
+    const handleTenantChange = (tenant: Tenant) => {
+        setCurrentTenant(tenant);
+        // Store both id and name for display purposes
+        localStorage.setItem('tenant_id', tenant.id);
+        localStorage.setItem('tenant_name', tenant.name);
+    };
 
     const handleLogout = () => {
         dispatch(logoutUser());
@@ -52,11 +66,7 @@ export const Navbar = ({ onMenuClick }: NavbarProps) => {
                 <div className="hidden sm:block pr-4">
                     <TenantSwitcher
                         currentTenant={currentTenant}
-                        tenants={[
-                            { id: '1', name: 'Acme Corp', isActive: true },
-                            { id: '2', name: 'Tech Solutions', isActive: true },
-                        ]}
-                        onTenantChange={setCurrentTenant}
+                        onTenantChange={handleTenantChange}
                         isSuperAdmin={isSuperAdmin}
                     />
                 </div>
@@ -67,6 +77,10 @@ export const Navbar = ({ onMenuClick }: NavbarProps) => {
             {/* Right side */}
             <div className="flex items-center gap-2">
                 <SearchField />
+
+                {/* Theme Toggle */}
+                <ThemeToggle />
+
                 {/* Notifications */}
                 <Button variant="ghost" size="icon" className="relative">
                     <Bell className="h-5 w-5" />
@@ -82,11 +96,11 @@ export const Navbar = ({ onMenuClick }: NavbarProps) => {
                 <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                         <Button variant="ghost" className="gap-2">
-                            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-xs font-semibold text-primary-foreground">
-                                {user?.name?.charAt(0) || user?.email?.charAt(0) || 'NA'}
+                            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-50 text-xs font-semibold text-primary border ">
+                                {(user?.name?.charAt(0) || user?.email?.charAt(0) || 'N')?.toUpperCase()}
                             </div>
                             <span className="hidden sm:inline-block text-sm font-medium">
-                                {user?.name || user?.email || 'N/A'} 
+                                {user?.name || user?.email || 'N/A'}
                             </span>
                         </Button>
                     </DropdownMenuTrigger>
@@ -97,10 +111,10 @@ export const Navbar = ({ onMenuClick }: NavbarProps) => {
                             <User className="mr-2 h-4 w-4" />
                             <span>Profile</span>
                         </DropdownMenuItem>
-                        <DropdownMenuItem>
+                        {/* <DropdownMenuItem>
                             <Settings className="mr-2 h-4 w-4" />
                             <span>Settings</span>
-                        </DropdownMenuItem>
+                        </DropdownMenuItem> */}
                         <DropdownMenuSeparator />
                         <DropdownMenuItem onClick={handleLogout} className="text-destructive">
                             <LogOut className="mr-2 h-4 w-4" />
