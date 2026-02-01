@@ -27,8 +27,11 @@ export const TenantManagement = () => {
                 search: search || undefined,
                 status: statusFilter || undefined,
             });
+            if (response.tenants.length === 0 && currentPage > 1) {
             setTenants(response.tenants);
+
             setTotalPages(Math.ceil(response.total / itemsPerPage));
+            }
         } catch (err: any) {
             toast.error(err.response?.data?.message || 'Failed to fetch tenants');
             console.error('Error fetching tenants:', err);

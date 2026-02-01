@@ -35,7 +35,7 @@ export const tenantsAPI = {
     },
 
     create: async (data: CreateTenantData): Promise<TenantData> => {
-        const response = await apiClient.post<TenantData>('/api/v1/tenants', data);
+        const response = await apiClient.post<TenantData>('/api/v1/tenants/create', data);
         return response.data;
     },
 

@@ -2,7 +2,7 @@ from pydantic_settings import BaseSettings
 
 class Settings(BaseSettings):
     DATABASE_URL: str
-    DB_SCHEMA: str = "public"
+    DB_SCHEMA: str = "auth_schema"
 
     SECRET_KEY: str
     ALGORITHM: str = "HS256"

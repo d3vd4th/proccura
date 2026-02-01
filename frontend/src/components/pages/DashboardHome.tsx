@@ -380,7 +380,7 @@ export const DashboardHome = () => {
             {/* Stats Cards */}
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
                 {stats.map((stat) => (
-                    <Card key={stat.title} className="border-0 shadow-sm hover:shadow-md transition-shadow">
+                    <Card key={stat.title} className="border-0  hover:shadow-md transition-shadow">
                         <CardContent className="p-5">
                             <div className="flex items-center justify-between">
                                 <div>
@@ -410,7 +410,7 @@ export const DashboardHome = () => {
             {/* Charts Row 1 */}
             <div className="grid gap-6 lg:grid-cols-3">
                 {/* Procurement Spend Trend */}
-                <Card className="lg:col-span-2 border-0 shadow-sm">
+                <Card className="lg:col-span-2 border-0 ">
                     <CardHeader className="pb-2">
                         <CardTitle className="text-lg font-semibold">Procurement Spend Trend</CardTitle>
                     </CardHeader>
@@ -420,7 +420,7 @@ export const DashboardHome = () => {
                 </Card>
 
                 {/* PO Status Distribution */}
-                <Card className="border-0 shadow-sm">
+                <Card className="border-0 ">
                     <CardHeader className="pb-2">
                         <CardTitle className="text-lg font-semibold">PO Status</CardTitle>
                     </CardHeader>
@@ -433,7 +433,7 @@ export const DashboardHome = () => {
             {/* Charts Row 2 */}
             <div className="grid gap-6 lg:grid-cols-2">
                 {/* Top Vendors */}
-                <Card className="border-0 shadow-sm">
+                <Card className="border-0 ">
                     <CardHeader className="pb-2">
                         <CardTitle className="text-lg font-semibold">Top Vendors by Spend</CardTitle>
                     </CardHeader>
@@ -443,7 +443,7 @@ export const DashboardHome = () => {
                 </Card>
 
                 {/* RFQ Stats */}
-                <Card className="border-0 shadow-sm">
+                <Card className="border-0 ">
                     <CardHeader className="pb-2">
                         <CardTitle className="text-lg font-semibold">RFQ & Quotation Activity</CardTitle>
                     </CardHeader>
@@ -456,7 +456,7 @@ export const DashboardHome = () => {
             {/* Bottom Row */}
             <div className="grid gap-6 lg:grid-cols-3">
                 {/* Recent Purchase Orders */}
-                <Card className="lg:col-span-2 border-0 shadow-sm">
+                <Card className="lg:col-span-2 border-0 ">
                     <CardHeader className="pb-2">
                         <CardTitle className="text-lg font-semibold">Recent Purchase Orders</CardTitle>
                     </CardHeader>
@@ -491,7 +491,7 @@ export const DashboardHome = () => {
                 </Card>
 
                 {/* Pending Actions */}
-                <Card className="border-0 shadow-sm">
+                <Card className="border-0 ">
                     <CardHeader className="pb-2">
                         <CardTitle className="text-lg font-semibold">Pending Actions</CardTitle>
                     </CardHeader>
