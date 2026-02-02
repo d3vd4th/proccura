@@ -1,6 +1,6 @@
 from sqlalchemy.orm import Session
 from app.models.user import User
-from app.models.tenant_user import TenantUser
+from app.models.tenant_user import TenantUser, TenantUserStatus
 from app.core.security import hash_password
 
 
@@ -15,7 +15,8 @@ def create_user(
     if not user:
         user = User(
             email=payload.email,
-            full_name=payload.full_name,
+            first_name=payload.first_name,
+            last_name=payload.last_name,
             password_hash=hash_password(payload.password),
             profile_pic_url=payload.profile_pic_url,
             is_active=True,
@@ -41,7 +42,7 @@ def create_user(
         user_id=user.id,
         tenant_id=tenant_id,
         role_id=payload.role_id,
-        status="active",
+        status=TenantUserStatus.ACTIVE,
     )
 
     db.add(tenant_user)
@@ -56,15 +57,17 @@ def list_users(db: Session, tenant_id: str):
         .join(TenantUser)
         .filter(
             TenantUser.tenant_id == tenant_id,
-            TenantUser.status == "active",
+            TenantUser.status == TenantUserStatus.ACTIVE,
         )
         .all()
     )
 
 
 def update_user(db: Session, user: User, payload):
-    if payload.full_name is not None:
-        user.full_name = payload.full_name
+    if payload.first_name is not None:
+        user.first_name = payload.first_name
+    if payload.last_name is not None:
+        user.last_name = payload.last_name
     if payload.is_active is not None:
         user.is_active = payload.is_active
     if payload.profile_pic_url is not None:

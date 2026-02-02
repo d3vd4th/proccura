@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 
 from app.models.role_permission import RolePermission
 from app.models.permission import Permission
-from app.models.tenant_user import TenantUser
+from app.models.tenant_user import TenantUser, TenantUserStatus
 from app.dependencies.auth import get_current_user
 from app.dependencies.tenant import get_current_tenant
 from app.api.deps import get_db  
@@ -25,7 +25,7 @@ def require_permission(permission_code: str):
             .filter(
                 TenantUser.user_id == current_user.id,
                 TenantUser.tenant_id == tenant.id,
-                TenantUser.status == "active",
+                TenantUser.status == TenantUserStatus.ACTIVE,
             )
             .first()
         )

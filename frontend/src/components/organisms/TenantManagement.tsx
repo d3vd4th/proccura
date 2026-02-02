@@ -2,12 +2,13 @@ import { useState, useEffect, useCallback } from 'react';
 import { Trash2, Edit, Loader2 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, Button, useToast } from '@/components/atoms';
 import { DataTable, TableFilter, AddTenantForm } from '@/components/molecules';
-import { tenantsAPI, CreateTenantData } from '@/api/tenants';
+import { tenantsAPI, CreateTenantData, UpdateTenantData } from '@/api/tenants';
 import { TenantData } from '@/types/configure';
 
 export const TenantManagement = () => {
     const [tenants, setTenants] = useState<TenantData[]>([]);
     const [showAddForm, setShowAddForm] = useState(false);
+    const [editingTenant, setEditingTenant] = useState<TenantData | null>(null);
     const [currentPage, setCurrentPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
     const [search, setSearch] = useState('');
@@ -27,11 +28,8 @@ export const TenantManagement = () => {
                 search: search || undefined,
                 status: statusFilter || undefined,
             });
-            if (response.tenants.length === 0 && currentPage > 1) {
-            setTenants(response.tenants);
-
-            setTotalPages(Math.ceil(response.total / itemsPerPage));
-            }
+            setTenants(response);
+            setTotalPages(Math.ceil(response.length / itemsPerPage));
         } catch (err: any) {
             toast.error(err.response?.data?.message || 'Failed to fetch tenants');
             console.error('Error fetching tenants:', err);
@@ -53,6 +51,18 @@ export const TenantManagement = () => {
         } catch (err: any) {
             toast.error(err.response?.data?.message || 'Failed to create tenant');
             console.error('Error creating tenant:', err);
+        }
+    };
+
+    const handleEditTenant = async (id: string, data: UpdateTenantData) => {
+        try {
+            await tenantsAPI.update(id, data);
+            setEditingTenant(null);
+            toast.success('Tenant updated successfully!');
+            fetchTenants();
+        } catch (err: any) {
+            toast.error(err.response?.data?.message || 'Failed to update tenant');
+            console.error('Error updating tenant:', err);
         }
     };
 
@@ -141,7 +151,7 @@ export const TenantManagement = () => {
                                         </span>
                                     ),
                                 },
-                                { key: 'createdAt', label: 'Created' },
+                                { key: 'created_at', label: 'Created' },
                             ]}
                             data={tenants}
                             totalPages={totalPages}
@@ -149,7 +159,10 @@ export const TenantManagement = () => {
                             onPageChange={setCurrentPage}
                             actions={(tenant) => (
                                 <div className="flex gap-2">
-                                    <button className="text-blue-600 hover:text-blue-800">
+                                    <button
+                                        className="text-blue-600 hover:text-blue-800"
+                                        onClick={() => setEditingTenant(tenant)}
+                                    >
                                         <Edit className="h-4 w-4" />
                                     </button>
                                     <button
@@ -176,6 +189,14 @@ export const TenantManagement = () => {
                     onClose={() => setShowAddForm(false)}
                 />
             )}
+
+            {/* {editingTenant && (
+                <EditTenantForm
+                    tenant={editingTenant}
+                    onSubmit={handleEditTenant}
+                    onClose={() => setEditingTenant(null)}
+                />
+            )} */}
         </>
     );
 };

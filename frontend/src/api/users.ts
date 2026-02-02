@@ -3,16 +3,20 @@ import type { UserData } from '@/types/configure';
 
 export interface CreateUserData {
     email: string;
-    name: string;
-    role: string;
-    password?: string;
+    first_name: string;
+    last_name?: string;
+    password: string;
+    role_id: string;
+    phone?: string;
+    profile_pic_url?: string;
 }
 
 export interface UpdateUserData {
-    email?: string;
-    name?: string;
-    role?: string;
-    status?: 'active' | 'inactive';
+    first_name?: string;
+    last_name?: string;
+    phone?: string;
+    is_active?: boolean;
+    profile_pic_url?: string;
 }
 
 export interface UsersResponse {
@@ -23,8 +27,8 @@ export interface UsersResponse {
 }
 
 export const usersAPI = {
-    getAll: async (params?: { page?: number; limit?: number; search?: string; status?: string; role?: string }): Promise<UsersResponse> => {
-        const response = await apiClient.get<UsersResponse>('/api/v1/users', { params });
+    getAll: async (params?: { page?: number; limit?: number; search?: string; status?: string; role?: string }): Promise<UserData[]> => {
+        const response = await apiClient.get<UserData[]>('/api/v1/users', { params });
         return response.data;
     },
 

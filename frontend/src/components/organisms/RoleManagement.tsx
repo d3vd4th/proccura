@@ -25,8 +25,8 @@ export const RoleManagement = () => {
                 limit: itemsPerPage,
                 search: search || undefined,
             });
-            setRoles(response.roles);
-            setTotalPages(Math.ceil(response.total / itemsPerPage));
+            setRoles(response);
+            setTotalPages(Math.ceil(response.length / itemsPerPage));
         } catch (err: any) {
             toast.error(err.response?.data?.message || 'Failed to fetch roles');
             console.error('Error fetching roles:', err);
@@ -111,7 +111,7 @@ export const RoleManagement = () => {
                                     key: 'permissions',
                                     label: 'Permissions',
                                     render: (value: string[]) => (
-                                        <span className="text-sm">{value.length} permissions</span>
+                                        <span className="text-sm">{value?.length} permissions</span>
                                     ),
                                 },
                                 { key: 'createdAt', label: 'Created' },

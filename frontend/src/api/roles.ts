@@ -4,7 +4,7 @@ import type { RoleData } from '@/types/configure';
 export interface CreateRoleData {
     name: string;
     description: string;
-    permissions: string[];
+    permissions?: string[];
 }
 
 export interface UpdateRoleData {
@@ -13,16 +13,9 @@ export interface UpdateRoleData {
     permissions?: string[];
 }
 
-export interface RolesResponse {
-    roles: RoleData[];
-    total: number;
-    page: number;
-    limit: number;
-}
-
 export const rolesAPI = {
-    getAll: async (params?: { page?: number; limit?: number; search?: string }): Promise<RolesResponse> => {
-        const response = await apiClient.get<RolesResponse>('/api/v1/roles', { params });
+    getAll: async (params?: { page?: number; limit?: number; search?: string }): Promise<RoleData[]> => {
+        const response = await apiClient.get<RoleData[]>('/api/v1/roles', { params });
         return response.data;
     },
 

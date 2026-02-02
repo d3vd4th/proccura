@@ -2,7 +2,7 @@ from fastapi import Depends, Header, HTTPException, status
 from sqlalchemy.orm import Session
 
 from app.models.tenant import Tenant
-from app.models.tenant_user import TenantUser
+from app.models.tenant_user import TenantUser, TenantUserStatus
 from app.models.user import User
 from app.dependencies.auth import get_current_user
 from app.api.deps import get_db  
@@ -33,7 +33,7 @@ def get_current_tenant(
         .filter(
             TenantUser.tenant_id == tenant.id,
             TenantUser.user_id == current_user.id,
-            TenantUser.status == "active"
+            TenantUser.status == TenantUserStatus.ACTIVE
         )
         .first()
     )

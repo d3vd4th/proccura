@@ -29,8 +29,8 @@ export const UserManagement = () => {
                 status: statusFilter || undefined,
                 role: roleFilter || undefined,
             });
-            setUsers(response.users);
-            setTotalPages(Math.ceil(response.total / itemsPerPage));
+            setUsers(response);
+            setTotalPages(Math.ceil(response.length / itemsPerPage));
         } catch (err: any) {
             toast.error(err.response?.data?.message || 'Failed to fetch users');
             console.error('Error fetching users:', err);
@@ -135,23 +135,27 @@ export const UserManagement = () => {
                         <DataTable
                             columns={[
                                 { key: 'email', label: 'Email' },
-                                { key: 'name', label: 'Name' },
-                                { key: 'role', label: 'Role' },
                                 {
-                                    key: 'status',
+                                    key: 'first_name',
+                                    label: 'Name',
+                                    render: (value, row) => (
+                                        <span>{value} {row.last_name || ''}</span>
+                                    ),
+                                },
+                                {
+                                    key: 'is_active',
                                     label: 'Status',
                                     render: (value) => (
                                         <span
-                                            className={`px-2 py-1 rounded-full text-xs font-medium ${value === 'active'
+                                            className={`px-2 py-1 rounded-full text-xs font-medium ${value
                                                 ? 'bg-green-100 text-green-800'
                                                 : 'bg-red-100 text-red-800'
                                                 }`}
                                         >
-                                            {value}
+                                            {value ? 'Active' : 'Inactive'}
                                         </span>
                                     ),
                                 },
-                                { key: 'createdAt', label: 'Created' },
                             ]}
                             data={users}
                             totalPages={totalPages}

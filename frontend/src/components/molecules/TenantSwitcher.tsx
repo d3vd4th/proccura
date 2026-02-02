@@ -21,6 +21,28 @@ export const TenantSwitcher = ({
     const [isOpen, setIsOpen] = useState(false);
     const [tenants, setTenants] = useState<Tenant[]>([]);
     const [isLoading, setIsLoading] = useState(false);
+    const [isLoadingCurrent, setIsLoadingCurrent] = useState(false);
+
+    // Load tenant from localStorage on mount if currentTenant is null
+    useEffect(() => {
+        const loadTenantFromStorage = async () => {
+            const storedTenantId = localStorage.getItem('tenant_id');
+            if (storedTenantId && !currentTenant) {
+                setIsLoadingCurrent(true);
+                try {
+                    const tenant = await tenantsAPI.getById(storedTenantId);
+                    onTenantChange({ id: tenant.id, name: tenant.name });
+                } catch (error) {
+                    console.error('Failed to fetch tenant from storage:', error);
+                    // Clear invalid tenant_id from storage
+                    localStorage.removeItem('tenant_id');
+                } finally {
+                    setIsLoadingCurrent(false);
+                }
+            }
+        };
+        loadTenantFromStorage();
+    }, []);
 
     // Fetch tenants when super admin opens dropdown
     useEffect(() => {
@@ -33,7 +55,7 @@ export const TenantSwitcher = ({
         setIsLoading(true);
         try {
             const response = await tenantsAPI.getAll({ limit: 100, status: 'active' });
-            const tenantList = response.tenants.map((tenant) => ({
+            const tenantList = response.map((tenant) => ({
                 id: tenant.id,
                 name: tenant.name,
             }));
@@ -57,7 +79,11 @@ export const TenantSwitcher = ({
         return (
             <div className="flex items-center border gap-2 rounded-2xl px-4 py-2">
                 <Building2 className="h-4 w-4" />
-                <span className="text-sm font-medium">{currentTenant?.name || 'No Tenant'}</span>
+                {isLoadingCurrent ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                    <span className="text-sm font-medium">{currentTenant?.name || 'No Tenant'}</span>
+                )}
             </div>
         );
     }
@@ -69,7 +95,11 @@ export const TenantSwitcher = ({
                 className="flex items-center border gap-2 px-4 py-2 rounded-xl hover:bg-muted transition-colors"
             >
                 <Building2 className="h-4 w-4" />
-                <span className="text-sm font-medium">{currentTenant?.name || 'Select Tenant'}</span>
+                {isLoadingCurrent ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                    <span className="text-sm font-medium">{currentTenant?.name || 'Select Tenant'}</span>
+                )}
                 <ChevronDown
                     className={`h-4 w-4 ml-6 transition-transform ${isOpen ? 'rotate-180' : ''}`}
                 />
