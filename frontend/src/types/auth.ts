@@ -5,6 +5,7 @@ export interface User {
   role?: string;
   is_super_admin?: boolean;
   tenant_id?: string;
+  permissions?: string[];
 }
 
 export interface LoginCredentials {

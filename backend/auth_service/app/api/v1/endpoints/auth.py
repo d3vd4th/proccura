@@ -1,43 +1,169 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Request, HTTPException, status
 from sqlalchemy.orm import Session
 
 from app.schemas.auth import LoginRequest, RefreshTokenRequest, TokenResponse
+from app.schemas.auth_log import AuthLogResponse
 from app.services.auth_service import authenticate_user, issue_tokens, refresh_access_token
+from app.services.auth_log_service import log_auth_event, get_auth_logs, AuthAction
+from app.dependencies.auth import get_current_user
 from app.api.deps import get_db  
 
 router = APIRouter()  
 
+
+def get_client_ip(request: Request) -> str:
+    """Extract client IP from request headers or connection"""
+    forwarded = request.headers.get("X-Forwarded-For")
+    if forwarded:
+        return forwarded.split(",")[0].strip()
+    return request.client.host if request.client else None
+
+
 @router.post("/login", response_model=TokenResponse)
-def login(payload: LoginRequest, db: Session = Depends(get_db)):
-    user = authenticate_user(db, payload.email, payload.password)
-    access_token, refresh_token = issue_tokens(user)
+def login(
+    payload: LoginRequest,
+    request: Request,
+    db: Session = Depends(get_db),
+):
+    ip_address = get_client_ip(request)
+    user_agent = request.headers.get("User-Agent")
+
+    try:
+        user = authenticate_user(db, payload.email, payload.password)
+        access_token, refresh_token = issue_tokens(user)
+
+        # Log successful login
+        log_auth_event(
+            db=db,
+            action=AuthAction.LOGIN_SUCCESS,
+            user_id=user.id,
+            tenant_id=user.tenant_id,
+            ip_address=ip_address,
+            user_agent=user_agent,
+            details={"email": payload.email},
+        )
+
+        return {
+            "user": {
+                "id": user.id,
+                "email": user.email,
+                "first_name": user.first_name,
+                "last_name": user.last_name,
+                "is_active": user.is_active,
+                "is_super_admin": user.is_super_admin,
+                "profile_pic_url": user.profile_pic_url,
+                "tenant_id": user.tenant_id,
+            },
+            "access_token": access_token,
+            "refresh_token": refresh_token,
+        }
+    except HTTPException as e:
+        # Log failed login attempt
+        log_auth_event(
+            db=db,
+            action=AuthAction.LOGIN_FAILED,
+            ip_address=ip_address,
+            user_agent=user_agent,
+            details={"email": payload.email, "reason": e.detail},
+        )
+        raise
+
+
+@router.post("/logout", status_code=204)
+def logout(
+    request: Request,
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user),
+):
+    ip_address = get_client_ip(request)
+    user_agent = request.headers.get("User-Agent")
+
+    log_auth_event(
+        db=db,
+        action=AuthAction.LOGOUT,
+        user_id=current_user.id,
+        ip_address=ip_address,
+        user_agent=user_agent,
+    )
+
+    return None
+
+
+@router.get("/me")
+def get_current_user_info(
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user),
+):
+    """Get current authenticated user info with permissions"""
+    from app.models.tenant_user import TenantUser
+    from app.models.role_permission import RolePermission
+    from app.models.permission import Permission
+
+    # Get tenant_user for the user
+    tenant_user = (
+        db.query(TenantUser)
+        .filter(TenantUser.user_id == current_user.id)
+        .first()
+    )
+
+    # Get user permissions based on their role
+    permissions = []
+    if tenant_user and tenant_user.role_id:
+        permission_codes = (
+            db.query(Permission.code)
+            .join(RolePermission, RolePermission.permission_id == Permission.id)
+            .filter(RolePermission.role_id == tenant_user.role_id)
+            .all()
+        )
+        permissions = [p[0] for p in permission_codes]
 
     return {
-        "user": {
-            "id": user.id,
-            "email": user.email,
-            "first_name": user.first_name,
-            "last_name": user.last_name,
-            "is_active": user.is_active,
-            "is_super_admin": user.is_super_admin,
-            "profile_pic_url": user.profile_pic_url,
-            "tenant_id": user.tenant_id,
-        },
-        "access_token": access_token,
-        "refresh_token": refresh_token
+        "id": current_user.id,
+        "email": current_user.email,
+        "first_name": current_user.first_name,
+        "last_name": current_user.last_name,
+        "is_active": current_user.is_active,
+        "is_super_admin": current_user.is_super_admin,
+        "profile_pic_url": current_user.profile_pic_url,
+        "tenant_id": tenant_user.tenant_id if tenant_user else None,
+        "role_id": tenant_user.role_id if tenant_user else None,
+        "permissions": permissions,
     }
+
 
 @router.post("/refresh")
 def refresh_token(
     payload: RefreshTokenRequest,
-    db: Session = Depends(get_db)
+    request: Request,
+    db: Session = Depends(get_db),
 ):
+    ip_address = get_client_ip(request)
+    user_agent = request.headers.get("User-Agent")
+
     access_token = refresh_access_token(db, payload.refresh_token)
+
+    # Log token refresh
+    log_auth_event(
+        db=db,
+        action=AuthAction.TOKEN_REFRESH,
+        ip_address=ip_address,
+        user_agent=user_agent,
+    )
 
     return {
         "access_token": access_token,
-        "token_type": "bearer"
+        "token_type": "bearer",
     }
+
+
+@router.get("/logs", response_model=list[AuthLogResponse])
+def get_user_auth_logs(
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user),
+    limit: int = 50,
+):
+    """Get auth logs for the current user"""
+    return get_auth_logs(db, user_id=current_user.id, limit=limit)
 
 @router.get("/health")
 def health_check():

@@ -8,7 +8,8 @@ from app.services.tenant_service import (
     create_tenant, update_tenant, get_tenant, list_tenants
 )
 from app.dependencies.auth import require_super_admin
-from app.api.deps import get_db  
+from app.api.deps import get_db
+from app.dependencies.tenant import get_current_tenant  
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -51,7 +52,7 @@ def list_tenants_api(
 def get_tenant_api(
     tenant_id: str,
     db: Session = Depends(get_db),
-    _=Depends(require_super_admin)
+    _=Depends(get_current_tenant)
 ):
     tenant = get_tenant(db, tenant_id)
     if not tenant:

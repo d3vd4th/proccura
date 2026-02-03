@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 import logging
 
 from config import settings
-from proxy import auth, roles, tenants, users
+from proxy import auth, roles, tenants, users, permissions
 
 # Configure logging
 logging.basicConfig(
@@ -33,6 +33,7 @@ app.include_router(auth.router)
 app.include_router(roles.router)
 app.include_router(tenants.router)
 app.include_router(users.router)
+app.include_router(permissions.router)
 
 
 @app.get("/")

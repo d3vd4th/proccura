@@ -36,9 +36,16 @@ export const TenantSwitcher = ({
                     console.error('Failed to fetch tenant from storage:', error);
                     // Clear invalid tenant_id from storage
                     localStorage.removeItem('tenant_id');
+                    // Fetch tenants and auto-select first one if super admin
+                    if (isSuperAdmin) {
+                        fetchTenants(true);
+                    }
                 } finally {
                     setIsLoadingCurrent(false);
                 }
+            } else if (!storedTenantId && !currentTenant && isSuperAdmin) {
+                // No stored tenant, fetch and auto-select first one
+                fetchTenants(true);
             }
         };
         loadTenantFromStorage();
@@ -51,7 +58,7 @@ export const TenantSwitcher = ({
         }
     }, [isSuperAdmin, isOpen]);
 
-    const fetchTenants = async () => {
+    const fetchTenants = async (autoSelectFirst = false) => {
         setIsLoading(true);
         try {
             const response = await tenantsAPI.getAll({ limit: 100, status: 'active' });
@@ -60,6 +67,12 @@ export const TenantSwitcher = ({
                 name: tenant.name,
             }));
             setTenants(tenantList);
+
+            // Auto-select first tenant if requested and no tenant is currently selected
+            if (autoSelectFirst && tenantList.length > 0 && !currentTenant) {
+                localStorage.setItem('tenant_id', tenantList[0].id);
+                onTenantChange(tenantList[0]);
+            }
         } catch (error) {
             console.error('Failed to fetch tenants:', error);
         } finally {

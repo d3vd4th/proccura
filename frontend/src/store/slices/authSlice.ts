@@ -9,10 +9,13 @@ interface AuthState {
   error: string | null;
 }
 
+// Check if token exists to determine initial loading state
+const hasToken = !!localStorage.getItem('access_token');
+
 const initialState: AuthState = {
   user: null,
   isAuthenticated: false,
-  isLoading: false,
+  isLoading: hasToken, // Only show loading if there's a token to validate
   error: null,
 };
 
@@ -27,6 +30,7 @@ export const loginUser = createAsyncThunk(
         localStorage.setItem('refresh_token', data.refresh_token);
       }
       // Store tenant_id from response or user object
+      console.log('✅ Login successful:', data.user.tenant_id);
       const tenantId = data.tenant_id || data.user.tenant_id;
       if (tenantId) {
         localStorage.setItem('tenant_id', tenantId);
@@ -44,7 +48,6 @@ export const loadUser = createAsyncThunk(
   'auth/loadUser',
   async (_, { rejectWithValue }) => {
     const token = localStorage.getItem('access_token');
-    const cachedUser = localStorage.getItem('user_data');
 
     if (!token) {
       return rejectWithValue('No token found');
@@ -52,23 +55,11 @@ export const loadUser = createAsyncThunk(
 
     try {
       const data = await authAPI.getCurrentUser();
-      console.log('✅ User loaded from API:', data);
-      // Cache user data
-      localStorage.setItem('user_data', JSON.stringify(data));
       return data;
     } catch (error: any) {
-      console.error('❌ Failed to load from API:', error);
-      // Fallback: try to load from cached data
-      if (cachedUser) {
-        try {
-          const userData = JSON.parse(cachedUser);
-          console.log('⚠️  Using cached user data:', userData);
-          return userData;
-        } catch (parseError) {
-          console.error('❌ Cached user data invalid:', parseError);
-        }
-      }
-      localStorage.clear();
+      localStorage.removeItem('access_token');
+      localStorage.removeItem('refresh_token');
+      localStorage.removeItem('tenant_id');
       return rejectWithValue('Failed to load user');
     }
   }
@@ -108,8 +99,6 @@ const authSlice = createSlice({
         state.isAuthenticated = true;
         state.user = action.payload;
         state.error = null;
-        // Cache user data
-        localStorage.setItem('user_data', JSON.stringify(action.payload));
       })
       .addCase(loginUser.rejected, (state, action) => {
         state.isLoading = false;

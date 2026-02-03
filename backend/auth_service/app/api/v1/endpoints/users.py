@@ -10,6 +10,7 @@ from app.services.user_service import (
     create_user,
     list_users,
     update_user,
+    delete_user,
 )
 from app.dependencies.tenant import get_current_tenant
 from app.dependencies.permissions import require_permission
@@ -63,5 +64,26 @@ def update_user_api(
             detail="User not found",
         )
 
-    return update_user(db, user, payload)
+    return update_user(db, user, tenant.id, payload)
+
+
+@router.delete(
+    "/{user_id}",
+    status_code=204,
+    dependencies=[Depends(require_permission("user.delete"))],
+)
+def delete_user_api(
+    user_id: str,
+    tenant = Depends(get_current_tenant),
+    db: Session = Depends(get_db),
+):
+    result = delete_user(db, user_id, tenant.id)
+
+    if not result:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found in this tenant",
+        )
+
+    return None
 

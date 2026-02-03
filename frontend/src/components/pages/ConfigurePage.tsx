@@ -6,7 +6,7 @@ import {
     TabsContent,
     TabsList,
     TabsTrigger,
-} from '@/components/ui/tabs';
+} from '@/components/atoms';
 type TabType = 'users' | 'roles' | 'tenants';
 
 export const ConfigurePage = () => {

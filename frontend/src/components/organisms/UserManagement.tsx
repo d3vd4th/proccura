@@ -2,12 +2,25 @@ import { useState, useEffect, useCallback } from 'react';
 import { Trash2, Edit, Loader2 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, Button, useToast } from '@/components/atoms';
 import { DataTable, TableFilter, AddUserForm } from '@/components/molecules';
-import { usersAPI, CreateUserData } from '@/api/users';
-import { UserData } from '@/types/configure';
+import { usersAPI, CreateUserData, UpdateUserData } from '@/api/users';
+import { rolesAPI } from '@/api/roles';
+import { UserData, RoleData } from '@/types/configure';
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from '@/components/atoms';
 
 export const UserManagement = () => {
     const [users, setUsers] = useState<UserData[]>([]);
     const [showAddForm, setShowAddForm] = useState(false);
+    const [editingUser, setEditingUser] = useState<UserData | null>(null);
+    const [userToDelete, setUserToDelete] = useState<string | null>(null);
     const [currentPage, setCurrentPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
     const [search, setSearch] = useState('');
@@ -15,9 +28,23 @@ export const UserManagement = () => {
     const [roleFilter, setRoleFilter] = useState('');
     const [isLoading, setIsLoading] = useState(true);
     const [isDeleting, setIsDeleting] = useState<string | null>(null);
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [roles, setRoles] = useState<RoleData[]>([]);
     const { toast } = useToast();
 
     const itemsPerPage = 10;
+
+    useEffect(() => {
+        const fetchRoles = async () => {
+            try {
+                const response = await rolesAPI.getAll({ limit: 100 });
+                setRoles(response || []);
+            } catch (error) {
+                console.error('Failed to fetch roles:', error);
+            }
+        };
+        fetchRoles();
+    }, []);
 
     const fetchUsers = useCallback(async () => {
         setIsLoading(true);
@@ -43,21 +70,38 @@ export const UserManagement = () => {
         fetchUsers();
     }, [fetchUsers]);
 
-    const handleAddUser = async (data: CreateUserData) => {
+    const handleAddUser = async (data: CreateUserData | UpdateUserData) => {
+        setIsSubmitting(true);
         try {
-            await usersAPI.create(data);
+            await usersAPI.create(data as CreateUserData);
             setShowAddForm(false);
             toast.success('User created successfully!');
             fetchUsers();
         } catch (err: any) {
             toast.error(err.response?.data?.message || 'Failed to create user');
             console.error('Error creating user:', err);
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
+    const handleEditUser = async (data: CreateUserData | UpdateUserData) => {
+        if (!editingUser) return;
+        setIsSubmitting(true);
+        try {
+            await usersAPI.update(editingUser.id, data as UpdateUserData);
+            setEditingUser(null);
+            toast.success('User updated successfully!');
+            fetchUsers();
+        } catch (err: any) {
+            toast.error(err.response?.data?.message || 'Failed to update user');
+            console.error('Error updating user:', err);
+        } finally {
+            setIsSubmitting(false);
         }
     };
 
     const handleDeleteUser = async (userId: string) => {
-        if (!confirm('Are you sure you want to delete this user?')) return;
-
         setIsDeleting(userId);
         try {
             await usersAPI.delete(userId);
@@ -68,6 +112,7 @@ export const UserManagement = () => {
             console.error('Error deleting user:', err);
         } finally {
             setIsDeleting(null);
+            setUserToDelete(null);
         }
     };
 
@@ -117,10 +162,10 @@ export const UserManagement = () => {
                             {
                                 key: 'role',
                                 label: 'Role',
-                                options: [
-                                    { value: 'admin', label: 'Admin' },
-                                    { value: 'user', label: 'User' },
-                                ],
+                                options: roles.map((role) => ({
+                                    value: role.id,
+                                    label: role.name,
+                                })),
                             },
                         ]}
                         onFilterChange={handleFilterChange}
@@ -163,12 +208,15 @@ export const UserManagement = () => {
                             onPageChange={setCurrentPage}
                             actions={(user) => (
                                 <div className="flex gap-2">
-                                    <button className="text-blue-600 hover:text-blue-800">
+                                    <button
+                                        className="text-blue-600 hover:text-blue-800"
+                                        onClick={() => setEditingUser(user)}
+                                    >
                                         <Edit className="h-4 w-4" />
                                     </button>
                                     <button
                                         className="text-red-600 hover:text-red-800 disabled:opacity-50"
-                                        onClick={() => handleDeleteUser(user.id)}
+                                        onClick={() => setUserToDelete(user.id)}
                                         disabled={isDeleting === user.id}
                                     >
                                         {isDeleting === user.id ? (
@@ -184,12 +232,41 @@ export const UserManagement = () => {
                 </CardContent>
             </Card>
 
-            {showAddForm && (
-                <AddUserForm
-                    onSubmit={handleAddUser}
-                    onClose={() => setShowAddForm(false)}
-                />
-            )}
+            <AddUserForm
+                open={showAddForm}
+                onOpenChange={setShowAddForm}
+                onSubmit={handleAddUser}
+                isSubmitting={isSubmitting}
+            />
+
+            <AddUserForm
+                open={!!editingUser}
+                onOpenChange={(open) => !open && setEditingUser(null)}
+                user={editingUser}
+                onSubmit={handleEditUser}
+                isSubmitting={isSubmitting}
+            />
+
+            <AlertDialog open={!!userToDelete} onOpenChange={(open) => !open && setUserToDelete(null)}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            This action cannot be undone. This will permanently delete the user
+                            and remove their data from our servers.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction
+                            onClick={() => userToDelete && handleDeleteUser(userToDelete)}
+                            className="bg-red-600 hover:bg-red-700"
+                        >
+                            Delete
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </>
     );
 };

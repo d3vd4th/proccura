@@ -1,8 +1,17 @@
 import { useState, useEffect } from 'react';
-import { X, Eye, EyeOff, Loader2 } from 'lucide-react';
+import { Eye, EyeOff, Loader2 } from 'lucide-react';
 import { Button, Input, Label } from '@/components/atoms';
 import { rolesAPI } from '@/api/roles';
-import { CreateUserData } from '@/api/users';
+import { CreateUserData, UpdateUserData } from '@/api/users';
+import { UserData } from '@/types/configure';
+import {
+    Modal,
+    ModalContent,
+    ModalHeader,
+    ModalTitle,
+    ModalDescription,
+    ModalFooter,
+} from '@/components/atoms';
 
 interface Role {
     id: string;
@@ -10,54 +19,98 @@ interface Role {
 }
 
 interface AddUserFormProps {
-    onSubmit: (data: CreateUserData) => void;
-    onClose: () => void;
+    open: boolean;
+    onOpenChange: (open: boolean) => void;
+    onSubmit: (data: CreateUserData | UpdateUserData) => void;
+    user?: UserData | null;
+    isSubmitting?: boolean;
 }
 
-export const AddUserForm = ({ onSubmit, onClose }: AddUserFormProps) => {
+export const AddUserForm = ({ open, onOpenChange, onSubmit, user, isSubmitting = false }: AddUserFormProps) => {
+    const isEditMode = !!user;
+
     const [formData, setFormData] = useState({
         email: '',
         first_name: '',
         last_name: '',
+        phone: '',
         password: '',
         role_id: '',
+        is_active: true,
     });
     const [showPassword, setShowPassword] = useState(false);
     const [roles, setRoles] = useState<Role[]>([]);
     const [isLoadingRoles, setIsLoadingRoles] = useState(true);
 
     useEffect(() => {
-        const fetchRoles = async () => {
-            try {
-                const response = await rolesAPI.getAll({ limit: 100 });
-                setRoles(response || []);
-            } catch (error) {
-                console.error('Failed to fetch roles:', error);
-            } finally {
-                setIsLoadingRoles(false);
-            }
-        };
-        fetchRoles();
-    }, []);
+        if (open) {
+            const fetchRoles = async () => {
+                try {
+                    const response = await rolesAPI.getAll({ limit: 100 });
+                    setRoles(response || []);
+                } catch (error) {
+                    console.error('Failed to fetch roles:', error);
+                } finally {
+                    setIsLoadingRoles(false);
+                }
+            };
+            fetchRoles();
+        }
+    }, [open]);
+
+    useEffect(() => {
+        if (user) {
+            setFormData({
+                email: user.email || '',
+                first_name: user.first_name || '',
+                last_name: user.last_name || '',
+                phone: user.phone || '',
+                password: '',
+                role_id: user.role_id || '',
+                is_active: user.is_active,
+            });
+        } else {
+            setFormData({
+                email: '',
+                first_name: '',
+                last_name: '',
+                phone: '',
+                password: '',
+                role_id: '',
+                is_active: true,
+            });
+        }
+    }, [user, open]);
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        onSubmit(formData);
+        if (isEditMode) {
+            const updateData: UpdateUserData = {
+                first_name: formData.first_name,
+                last_name: formData.last_name || undefined,
+                phone: formData.phone || undefined,
+                is_active: formData.is_active,
+                role_id: formData.role_id || undefined,
+            };
+            onSubmit(updateData);
+        } else {
+            onSubmit(formData as CreateUserData);
+        }
     };
 
     return (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-            <div className="bg-card rounded-lg p-6 w-full max-w-md">
-                <div className="flex justify-between items-center mb-6">
-                    <h2 className="text-lg font-semibold">Add New User</h2>
-                    <button onClick={onClose} className="text-muted-foreground hover:text-foreground">
-                        <X className="h-5 w-5" />
-                    </button>
-                </div>
+        <Modal open={open} onOpenChange={onOpenChange}>
+            <ModalContent>
+                <ModalHeader>
+                    <ModalTitle>{isEditMode ? 'Edit User' : 'Add New User'}</ModalTitle>
+                    <ModalDescription>
+                        {isEditMode ? 'Update user information below.' : 'Fill in the details to create a new user.'}
+                    </ModalDescription>
+                </ModalHeader>
 
                 <form onSubmit={handleSubmit} className="space-y-4">
                     <div className="space-y-2">
-                        <Label htmlFor="email">Email *</Label>
+                        <Label htmlFor="email">Email {!isEditMode && '*'}</Label>
                         <Input
                             id="email"
                             type="email"
@@ -66,7 +119,8 @@ export const AddUserForm = ({ onSubmit, onClose }: AddUserFormProps) => {
                             onChange={(e) =>
                                 setFormData({ ...formData, email: e.target.value })
                             }
-                            required
+                            required={!isEditMode}
+                            disabled={isEditMode}
                         />
                     </div>
 
@@ -96,28 +150,43 @@ export const AddUserForm = ({ onSubmit, onClose }: AddUserFormProps) => {
                     </div>
 
                     <div className="space-y-2">
-                        <Label htmlFor="password">Password *</Label>
-                        <div className="relative">
-                            <Input
-                                id="password"
-                                type={showPassword ? 'text' : 'password'}
-                                placeholder="Enter password"
-                                value={formData.password}
-                                onChange={(e) =>
-                                    setFormData({ ...formData, password: e.target.value })
-                                }
-                                required
-                                minLength={6}
-                            />
-                            <button
-                                type="button"
-                                onClick={() => setShowPassword(!showPassword)}
-                                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                            >
-                                {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                            </button>
-                        </div>
+                        <Label htmlFor="phone">Phone</Label>
+                        <Input
+                            id="phone"
+                            type="tel"
+                            placeholder="+1 (555) 000-0000"
+                            value={formData.phone}
+                            onChange={(e) =>
+                                setFormData({ ...formData, phone: e.target.value })
+                            }
+                        />
                     </div>
+
+                    {!isEditMode && (
+                        <div className="space-y-2">
+                            <Label htmlFor="password">Password *</Label>
+                            <div className="relative">
+                                <Input
+                                    id="password"
+                                    type={showPassword ? 'text' : 'password'}
+                                    placeholder="Enter password"
+                                    value={formData.password}
+                                    onChange={(e) =>
+                                        setFormData({ ...formData, password: e.target.value })
+                                    }
+                                    required
+                                    minLength={6}
+                                />
+                                <button
+                                    type="button"
+                                    onClick={() => setShowPassword(!showPassword)}
+                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                                >
+                                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                                </button>
+                            </div>
+                        </div>
+                    )}
 
                     <div className="space-y-2">
                         <Label htmlFor="role_id">Role *</Label>
@@ -146,16 +215,40 @@ export const AddUserForm = ({ onSubmit, onClose }: AddUserFormProps) => {
                         )}
                     </div>
 
-                    <div className="flex gap-3 justify-end pt-4">
-                        <Button variant="outline" onClick={onClose} type="button">
+                    {isEditMode && (
+                        <div className="space-y-2">
+                            <Label htmlFor="is_active">Status</Label>
+                            <select
+                                id="is_active"
+                                className="w-full px-3 py-2 border rounded-md text-sm bg-background"
+                                value={formData.is_active ? 'active' : 'inactive'}
+                                onChange={(e) =>
+                                    setFormData({ ...formData, is_active: e.target.value === 'active' })
+                                }
+                            >
+                                <option value="active">Active</option>
+                                <option value="inactive">Inactive</option>
+                            </select>
+                        </div>
+                    )}
+
+                    <ModalFooter>
+                        <Button variant="outline" onClick={() => onOpenChange(false)} type="button" disabled={isSubmitting}>
                             Cancel
                         </Button>
-                        <Button type="submit" disabled={isLoadingRoles}>
-                            Add User
+                        <Button type="submit" disabled={isLoadingRoles || isSubmitting}>
+                            {isSubmitting ? (
+                                <>
+                                    <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                                    {isEditMode ? 'Updating...' : 'Adding...'}
+                                </>
+                            ) : (
+                                isEditMode ? 'Update User' : 'Add User'
+                            )}
                         </Button>
-                    </div>
+                    </ModalFooter>
                 </form>
-            </div>
-        </div>
+            </ModalContent>
+        </Modal>
     );
 };

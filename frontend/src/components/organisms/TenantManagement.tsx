@@ -4,6 +4,16 @@ import { Card, CardContent, CardHeader, CardTitle, Button, useToast } from '@/co
 import { DataTable, TableFilter, AddTenantForm } from '@/components/molecules';
 import { tenantsAPI, CreateTenantData, UpdateTenantData } from '@/api/tenants';
 import { TenantData } from '@/types/configure';
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from '@/components/atoms';
 
 export const TenantManagement = () => {
     const [tenants, setTenants] = useState<TenantData[]>([]);
@@ -15,6 +25,9 @@ export const TenantManagement = () => {
     const [statusFilter, setStatusFilter] = useState('');
     const [isLoading, setIsLoading] = useState(true);
     const [isDeleting, setIsDeleting] = useState<string | null>(null);
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+    const [tenantToDelete, setTenantToDelete] = useState<string | null>(null);
     const { toast } = useToast();
 
     const itemsPerPage = 10;
@@ -42,33 +55,38 @@ export const TenantManagement = () => {
         fetchTenants();
     }, [fetchTenants]);
 
-    const handleAddTenant = async (data: CreateTenantData) => {
+    const handleAddTenant = async (data: CreateTenantData | UpdateTenantData) => {
+        setIsSubmitting(true);
         try {
-            await tenantsAPI.create(data);
+            await tenantsAPI.create(data as CreateTenantData);
             setShowAddForm(false);
             toast.success('Tenant created successfully!');
             fetchTenants();
         } catch (err: any) {
             toast.error(err.response?.data?.message || 'Failed to create tenant');
             console.error('Error creating tenant:', err);
+        } finally {
+            setIsSubmitting(false);
         }
     };
 
-    const handleEditTenant = async (id: string, data: UpdateTenantData) => {
+    const handleEditTenant = async (data: CreateTenantData | UpdateTenantData) => {
+        if (!editingTenant) return;
+        setIsSubmitting(true);
         try {
-            await tenantsAPI.update(id, data);
+            await tenantsAPI.update(editingTenant.id, data as UpdateTenantData);
             setEditingTenant(null);
             toast.success('Tenant updated successfully!');
             fetchTenants();
         } catch (err: any) {
             toast.error(err.response?.data?.message || 'Failed to update tenant');
             console.error('Error updating tenant:', err);
+        } finally {
+            setIsSubmitting(false);
         }
     };
 
     const handleDeleteTenant = async (tenantId: string) => {
-        if (!confirm('Are you sure you want to delete this tenant?')) return;
-
         setIsDeleting(tenantId);
         try {
             await tenantsAPI.delete(tenantId);
@@ -79,7 +97,14 @@ export const TenantManagement = () => {
             console.error('Error deleting tenant:', err);
         } finally {
             setIsDeleting(null);
+            setDeleteConfirmOpen(false);
+            setTenantToDelete(null);
         }
+    };
+
+    const openDeleteConfirm = (tenantId: string) => {
+        setTenantToDelete(tenantId);
+        setDeleteConfirmOpen(true);
     };
 
     const handleSearchChange = (value: string) => {
@@ -167,7 +192,7 @@ export const TenantManagement = () => {
                                     </button>
                                     <button
                                         className="text-red-600 hover:text-red-800 disabled:opacity-50"
-                                        onClick={() => handleDeleteTenant(tenant.id)}
+                                        onClick={() => openDeleteConfirm(tenant.id)}
                                         disabled={isDeleting === tenant.id}
                                     >
                                         {isDeleting === tenant.id ? (
@@ -183,20 +208,49 @@ export const TenantManagement = () => {
                 </CardContent>
             </Card>
 
-            {showAddForm && (
-                <AddTenantForm
-                    onSubmit={handleAddTenant}
-                    onClose={() => setShowAddForm(false)}
-                />
-            )}
+            <AddTenantForm
+                open={showAddForm}
+                onOpenChange={setShowAddForm}
+                onSubmit={handleAddTenant}
+                isSubmitting={isSubmitting}
+            />
 
-            {/* {editingTenant && (
-                <EditTenantForm
-                    tenant={editingTenant}
-                    onSubmit={handleEditTenant}
-                    onClose={() => setEditingTenant(null)}
-                />
-            )} */}
+            <AddTenantForm
+                open={!!editingTenant}
+                onOpenChange={(open) => !open && setEditingTenant(null)}
+                tenant={editingTenant}
+                onSubmit={handleEditTenant}
+                isSubmitting={isSubmitting}
+            />
+
+            <AlertDialog open={deleteConfirmOpen} onOpenChange={setDeleteConfirmOpen}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            This action cannot be undone. This will permanently delete the tenant
+                            and all associated data from our servers.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel disabled={isDeleting !== null}>Cancel</AlertDialogCancel>
+                        <AlertDialogAction
+                            onClick={() => tenantToDelete && handleDeleteTenant(tenantToDelete)}
+                            disabled={isDeleting !== null}
+                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                        >
+                            {isDeleting ? (
+                                <>
+                                    <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                                    Deleting...
+                                </>
+                            ) : (
+                                'Delete'
+                            )}
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </>
     );
 };

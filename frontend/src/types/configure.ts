@@ -5,6 +5,8 @@ export interface UserData {
     email: string;
     first_name: string;
     last_name: string | null;
+    phone: string | null;
+    role_id: string | null;
     is_active: boolean;
     profile_pic_url: string | null;
 }
@@ -16,6 +18,21 @@ export interface RoleData {
     permissions: string[];
     userCount: number;
     createdAt: string;
+}
+
+export interface Permission {
+    id: string;
+    code: string;
+    name: string;
+    description: string | null;
+}
+
+export interface FeatureWithPermissions {
+    id: string;
+    code: string;
+    name: string;
+    description: string | null;
+    permissions: Permission[];
 }
 
 export interface TenantData {

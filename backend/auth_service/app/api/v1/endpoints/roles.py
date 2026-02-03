@@ -15,7 +15,7 @@ from app.services.role_service import (
 )
 from app.dependencies.tenant import get_current_tenant
 from app.dependencies.permissions import require_permission
-from app.models.role import Role
+from app.models.role import Role    
 from app.api.deps import get_db  
 
 

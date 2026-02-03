@@ -9,6 +9,12 @@ from fastapi import FastAPI
 from app.api.v1.router import api_router
 from app.core.database import engine, Base
 
+# Import all models to register them with Base metadata
+from app.models import (
+    User, Tenant, TenantUser, Role, Permission,
+    RolePermission, Feature, AuthLog, AuditLog
+)
+
 # Create database tables
 Base.metadata.create_all(bind=engine)
 

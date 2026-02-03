@@ -24,3 +24,50 @@ export {
     DropdownMenuSubTrigger,
     DropdownMenuRadioGroup,
 } from './dropdown-menu'
+export {
+    AlertDialog,
+    AlertDialogPortal,
+    AlertDialogOverlay,
+    AlertDialogTrigger,
+    AlertDialogContent,
+    AlertDialogHeader,
+    AlertDialogFooter,
+    AlertDialogTitle,
+    AlertDialogDescription,
+    AlertDialogAction,
+    AlertDialogCancel,
+} from './alert-dialog'
+export {
+    Modal,
+    ModalPortal,
+    ModalOverlay,
+    ModalTrigger,
+    ModalClose,
+    ModalContent,
+    ModalHeader,
+    ModalFooter,
+    ModalTitle,
+    ModalDescription,
+} from './modal'
+export {
+    Sheet,
+    SheetPortal,
+    SheetOverlay,
+    SheetTrigger,
+    SheetClose,
+    SheetContent,
+    SheetHeader,
+    SheetFooter,
+    SheetTitle,
+    SheetDescription,
+} from './sheet'
+export {
+    Pagination,
+    PaginationContent,
+    PaginationEllipsis,
+    PaginationItem,
+    PaginationLink,
+    PaginationNext,
+    PaginationPrevious,
+} from './pagination'
+export { Tabs, TabsList, TabsTrigger, TabsContent } from './tabs'

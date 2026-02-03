@@ -5,7 +5,7 @@ import {
     PaginationLink,
     PaginationNext,
     PaginationPrevious,
-} from '@/components/ui/pagination';
+} from '@/components/atoms';
 
 interface Column<T> {
     key: keyof T;

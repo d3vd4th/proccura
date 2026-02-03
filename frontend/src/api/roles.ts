@@ -1,5 +1,5 @@
 import apiClient from './axios';
-import type { RoleData } from '@/types/configure';
+import type { RoleData, FeatureWithPermissions } from '@/types/configure';
 
 export interface CreateRoleData {
     name: string;
@@ -40,6 +40,11 @@ export const rolesAPI = {
 
     getPermissions: async (): Promise<string[]> => {
         const response = await apiClient.get<string[]>('/api/v1/roles/permissions');
+        return response.data;
+    },
+
+    getPermissionsGrouped: async (): Promise<FeatureWithPermissions[]> => {
+        const response = await apiClient.get<FeatureWithPermissions[]>('/api/v1/permissions/grouped');
         return response.data;
     },
 };
