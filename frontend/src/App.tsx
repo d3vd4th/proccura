@@ -18,6 +18,7 @@ import {
   PaymentsPage,
   QueriesPage,
   ReportsPage,
+  InvitationsPage,
 } from '@/components';
 
 
@@ -77,6 +78,7 @@ function App() {
               <Route path="/queries" element={<QueriesPage />} />
               <Route path="/reports" element={<ReportsPage />} />
               <Route path="/configure" element={<ConfigurePage />} />
+              <Route path="/invitations" element={<InvitationsPage />} />
             </Route>
 
             <Route path="/" element={<Navigate to="/login" replace />} />

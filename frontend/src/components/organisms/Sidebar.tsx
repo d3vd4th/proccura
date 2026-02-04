@@ -12,6 +12,7 @@ import {
     HelpCircle,
     BarChart3,
     Settings,
+    Mail,
 } from 'lucide-react';
 
 interface NavItem {
@@ -55,6 +56,11 @@ const navigation: NavItem[] = [
         title: 'Vendors',
         href: '/vendors',
         icon: Users,
+    },
+    {
+        title: 'Invitations',
+        href: '/invitations',
+        icon: Mail,
     },
     {
         title: 'Payments',
