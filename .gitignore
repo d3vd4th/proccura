@@ -1,4 +1,5 @@
 backend/venv
 backend/api_gateway/.env
 backend/auth_service/.env
+backend/vendor_service/.env
 

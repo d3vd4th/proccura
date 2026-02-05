@@ -9,6 +9,10 @@ class Settings(BaseSettings):
     TENANT_SERVICE_URL: str
     USER_SERVICE_URL: str
     ORDER_SERVICE_URL: str
+    VENDOR_SERVICE_URL: str
+
+    SECRET_KEY: str
+    ALGORITHM: str = "HS256"
 
     model_config = SettingsConfigDict(env_file=".env")
 

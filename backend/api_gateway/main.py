@@ -3,7 +3,8 @@ from fastapi.middleware.cors import CORSMiddleware
 import logging
 
 from config import settings
-from proxy import auth, roles, tenants, users, permissions
+from config import settings
+from proxy import auth, roles, tenants, users, permissions, vendor
 
 # Configure logging
 logging.basicConfig(
@@ -33,7 +34,9 @@ app.include_router(auth.router)
 app.include_router(roles.router)
 app.include_router(tenants.router)
 app.include_router(users.router)
+app.include_router(users.router)
 app.include_router(permissions.router)
+app.include_router(vendor.router)
 
 
 @app.get("/")
@@ -60,6 +63,7 @@ def health_check():
 async def startup_event():
     logger.info("🚀 Starting Proccura API Gateway")
     logger.info(f"Auth Service: {settings.AUTH_SERVICE_URL}")
+    logger.info(f"Vendor Service: {settings.VENDOR_SERVICE_URL}")
 
 
 @app.on_event("shutdown")
