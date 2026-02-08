@@ -19,7 +19,6 @@ apiClient.interceptors.request.use(
       config.headers.Authorization = `Bearer ${token}`;
     }
     if (tenantId) {
-      console.log('Setting X-Tenant-ID header:', tenantId);
       config.headers['X-Tenant-ID'] = tenantId;
     }
     return config;

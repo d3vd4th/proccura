@@ -24,17 +24,18 @@ def authenticate_user(db: Session, email: str, password: str) -> User:
     
     # Get tenant_id - query returns tuple, extract the value
     tenant_result = db.query(TenantUser.tenant_id).filter(TenantUser.user_id == user.id).first()
-    print(tenant_result)
     user.tenant_id = tenant_result[0] if tenant_result else None
 
+    role_result = db.query(TenantUser.role_id).filter(TenantUser.user_id == user.id).first()
+    user.role_id = role_result[0] if role_result else None
     return user
 
 
 def issue_tokens(user: User):
     access_token = create_access_token(
         subject=user.id,
-        tenant_id=None,  # tenant selection comes later
-        permissions=[],
+        tenant_id=user.tenant_id, 
+        role_id=user.role_id, 
         is_super_admin=user.is_super_admin
     )
 
@@ -64,7 +65,7 @@ def refresh_access_token(db, refresh_token: str):
     access_token = create_access_token(
         subject=user.id,
         tenant_id=None,  # tenant selection later
-        permissions=[],
+        role_id=user.role_id,
         is_super_admin=user.is_super_admin
     )
 

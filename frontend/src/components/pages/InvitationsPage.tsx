@@ -34,7 +34,7 @@ export const InvitationsPage = () => {
     const [totalPages, setTotalPages] = useState(1);
     const [search, setSearch] = useState('');
     const [statusFilter, setStatusFilter] = useState('');
-    const [isLoading, setIsLoading] = useState(true);
+
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isDeleting, setIsDeleting] = useState<string | null>(null);
     const [isResending, setIsResending] = useState<string | null>(null);
@@ -51,7 +51,7 @@ export const InvitationsPage = () => {
 
     const fetchInvitations = useCallback(async () => {
         try {
-            setIsLoading(true);
+
             const data = await invitationsAPI.getAll({
                 page: currentPage,
                 limit: 10,
@@ -63,19 +63,19 @@ export const InvitationsPage = () => {
         } catch (error) {
             console.error('Failed to fetch invitations:', error);
         } finally {
-            setIsLoading(false);
+
         }
     }, [currentPage, search, statusFilter, toast]);
 
     useEffect(() => {
         fetchInvitations();
-    }, [fetchInvitations]);
+    }, []);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
         if (!formData.email || !formData.business_name) {
-                toast.error('Please fill in all required fields');
+            toast.error('Please fill in all required fields');
             return;
         }
 
@@ -149,7 +149,7 @@ export const InvitationsPage = () => {
         {
             key: 'id',
             label: 'Invitation ID',
-            render: (invitation: InvitationData) => (
+            render: (_: any, invitation: InvitationData) => (
                 <span className="font-mono text-xs text-muted-foreground">
                     {invitation.id.slice(0, 8)}...
                 </span>
@@ -158,7 +158,7 @@ export const InvitationsPage = () => {
         {
             key: 'email',
             label: 'Email',
-            render: (invitation: InvitationData) => (
+            render: (_: any, invitation: InvitationData) => (
                 <div className="flex items-center gap-2">
                     <Mail className="h-4 w-4 text-muted-foreground" />
                     <span>{invitation.email}</span>
@@ -168,7 +168,7 @@ export const InvitationsPage = () => {
         {
             key: 'business_name',
             label: 'Business Name',
-            render: (invitation: InvitationData) => (
+            render: (_: any, invitation: InvitationData) => (
                 <div className="flex items-center gap-2">
                     <Building2 className="h-4 w-4 text-muted-foreground" />
                     <span>{invitation.business_name}</span>
@@ -178,12 +178,12 @@ export const InvitationsPage = () => {
         {
             key: 'status',
             label: 'Status',
-            render: (invitation: InvitationData) => getStatusBadge(invitation.status),
+            render: (status: string) => getStatusBadge(status),
         },
         {
-            key: 'actions',
+            key: 'actions' as keyof InvitationData,
             label: 'Actions',
-            render: (invitation: InvitationData) => (
+            render: (_: any, invitation: InvitationData) => (
                 <div className="flex items-center gap-2">
                     {invitation.status === 'pending' && (
                         <Button
@@ -216,7 +216,7 @@ export const InvitationsPage = () => {
                 </div>
             ),
         },
-    ];
+    ] as any;
 
     const statusOptions = [
         { value: '', label: 'All Status' },
@@ -234,13 +234,13 @@ export const InvitationsPage = () => {
             <Card>
                 <CardHeader className="flex flex-row items-center justify-between">
                     <div>
-                    <CardTitle>Invitations</CardTitle>
-                    <CardDescription>Manage your invitations</CardDescription>
+                        <CardTitle>Invitations</CardTitle>
+                        <CardDescription>Manage your invitations</CardDescription>
                     </div>
-                <Button onClick={() => setShowInviteModal(true)}>
-                    <Plus className="h-4 w-4 mr-2" />
-                    Send Invite
-                </Button>
+                    <Button onClick={() => setShowInviteModal(true)}>
+                        <Plus className="h-4 w-4 mr-2" />
+                        Send Invite
+                    </Button>
                 </CardHeader>
                 <CardContent className="space-y-4">
                     <TableFilter
@@ -259,8 +259,6 @@ export const InvitationsPage = () => {
                     <DataTable
                         columns={columns}
                         data={invitations}
-                        isLoading={isLoading}
-                        emptyMessage="No invitations found"
                         currentPage={currentPage}
                         totalPages={totalPages}
                         onPageChange={setCurrentPage}
@@ -274,7 +272,7 @@ export const InvitationsPage = () => {
                     <form onSubmit={handleSubmit}>
                         <ModalHeader>
                             <ModalTitle>Send Invitation</ModalTitle>
-                           
+
                         </ModalHeader>
 
                         <div className="space-y-4 p-6">

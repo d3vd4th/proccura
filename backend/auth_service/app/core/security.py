@@ -18,13 +18,13 @@ def verify_password(plain: str, hashed: str) -> bool:
 def create_access_token(
     subject: str,
     tenant_id: Optional[str],
-    permissions: list[str],
+    role_id: Optional[str],
     is_super_admin: bool
 ) -> str:
     payload = {
         "sub": subject,
         "tenant_id": tenant_id,
-        "permissions": permissions,
+        "role_id": role_id,
         "is_super_admin": is_super_admin,
         "type": "access",
         "exp": datetime.utcnow() + timedelta(

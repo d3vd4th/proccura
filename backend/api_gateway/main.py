@@ -3,8 +3,8 @@ from fastapi.middleware.cors import CORSMiddleware
 import logging
 
 from config import settings
-from config import settings
 from proxy import auth, roles, tenants, users, permissions, vendor
+from services.permission_service import close_redis
 
 # Configure logging
 logging.basicConfig(
@@ -33,7 +33,6 @@ app.add_middleware(
 app.include_router(auth.router)
 app.include_router(roles.router)
 app.include_router(tenants.router)
-app.include_router(users.router)
 app.include_router(users.router)
 app.include_router(permissions.router)
 app.include_router(vendor.router)
@@ -69,6 +68,8 @@ async def startup_event():
 @app.on_event("shutdown")
 async def shutdown_event():
     logger.info("🛑 Shutting down Proccura API Gateway")
+    await close_redis()
+    logger.info("✅ Redis connection closed")
 
 
 if __name__ == "__main__":
