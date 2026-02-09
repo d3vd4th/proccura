@@ -22,19 +22,15 @@ const initialState: AuthState = {
 // Async thunks
 export const loginUser = createAsyncThunk(
   'auth/login',
-  async ({ email, password }: { email: string; password: string }, { rejectWithValue }) => {
+  async ({ email, password, tenant_id }: { email: string; password: string; tenant_id?: string }, { rejectWithValue }) => {
     try {
-      const data = await authAPI.login(email, password);
+      const data = await authAPI.login(email, password, tenant_id);
       localStorage.setItem('access_token', data.access_token);
       if (data.refresh_token) {
         localStorage.setItem('refresh_token', data.refresh_token);
       }
-      // Store tenant_id from response or user object
-      console.log('✅ Login successful:', data.user.tenant_id);
-      const tenantId = data.tenant_id || data.user.tenant_id;
-      if (tenantId) {
-        localStorage.setItem('tenant_id', tenantId);
-      }
+      // Note: tenant_id is stored in LoginPage after selection
+      console.log('✅ Login successful');
       return data.user;
     } catch (error: any) {
       const errorMessage = error.response?.data?.detail || 'Login failed';

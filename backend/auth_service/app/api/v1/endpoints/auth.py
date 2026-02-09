@@ -1,14 +1,19 @@
 from fastapi import APIRouter, Depends, Request, HTTPException, status
 from sqlalchemy.orm import Session
 
-from app.schemas.auth import LoginRequest, RefreshTokenRequest, TokenResponse
+from app.schemas.auth import (
+    LoginRequest, RefreshTokenRequest, TokenResponse,
+    CheckEmailRequest, CheckEmailResponse, TenantInfo
+)
 from app.schemas.auth_log import AuthLogResponse
-from app.services.auth_service import authenticate_user, issue_tokens, refresh_access_token
+from app.services.auth_service import (
+    authenticate_user, issue_tokens, refresh_access_token, check_email_for_tenants
+)
 from app.services.auth_log_service import log_auth_event, get_auth_logs, AuthAction
 from app.dependencies.auth import get_current_user
-from app.api.deps import get_db  
+from app.api.deps import get_db
 
-router = APIRouter()  
+router = APIRouter()
 
 
 def get_client_ip(request: Request) -> str:
@@ -17,6 +22,29 @@ def get_client_ip(request: Request) -> str:
     if forwarded:
         return forwarded.split(",")[0].strip()
     return request.client.host if request.client else None
+
+
+@router.post("/check-email", response_model=CheckEmailResponse)
+def check_email(
+    payload: CheckEmailRequest,
+    db: Session = Depends(get_db),
+):
+    """
+    Step 1 of login: Check if email exists and return user's tenants.
+    Super admins can see all tenants.
+    """
+    user_exists, is_super_admin, tenant_list = check_email_for_tenants(db, payload.email)
+    
+    tenants = [
+        TenantInfo(id=t["id"], name=t["name"], logo_url=t["logo_url"])
+        for t in tenant_list
+    ]
+    
+    return CheckEmailResponse(
+        user_exists=user_exists,
+        is_super_admin=is_super_admin,
+        tenants=tenants
+    )
 
 
 @router.post("/login", response_model=TokenResponse)
@@ -29,7 +57,7 @@ def login(
     user_agent = request.headers.get("User-Agent")
 
     try:
-        user = authenticate_user(db, payload.email, payload.password)
+        user = authenticate_user(db, payload.email, payload.password, payload.tenant_id)
         access_token, refresh_token = issue_tokens(user)
 
         # Log successful login

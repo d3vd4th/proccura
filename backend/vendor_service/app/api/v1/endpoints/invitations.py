@@ -9,7 +9,7 @@ from app.dependencies.auth import get_tenant_id
 
 router = APIRouter()
 
-@router.post("/", response_model=InvitationOut)
+@router.post("", response_model=InvitationOut)
 def create_invitation(
     invitation: InvitationCreate, 
     tenant_id: str = Depends(get_tenant_id),
@@ -21,7 +21,7 @@ def create_invitation(
         tenant_id=tenant_id
     )
 
-@router.get("/", response_model=List[InvitationOut])
+@router.get("", response_model=List[InvitationOut])
 def list_invitations(
     skip: int = 0, 
     limit: int = 100, 

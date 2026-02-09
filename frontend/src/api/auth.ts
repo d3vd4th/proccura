@@ -1,9 +1,25 @@
 import apiClient from './axios';
 import type { RegisterData, AuthResponse, User } from '@/types/auth';
 
+export interface TenantInfo {
+  id: string;
+  name: string;
+  logo_url: string | null;
+}
+
+export interface CheckEmailResponse {
+  user_exists: boolean;
+  is_super_admin: boolean;
+  tenants: TenantInfo[];
+}
+
 export const authAPI = {
-  login: async (email: string, password: string): Promise<AuthResponse> => {
-    const response = await apiClient.post<AuthResponse>('/api/v1/auth/login', { email, password });
+  checkEmail: async (email: string): Promise<CheckEmailResponse> => {
+    const response = await apiClient.post<CheckEmailResponse>('/api/v1/auth/check-email', { email });
+    return response.data;
+  },
+  login: async (email: string, password: string, tenant_id?: string): Promise<AuthResponse> => {
+    const response = await apiClient.post<AuthResponse>('/api/v1/auth/login', { email, password, tenant_id });
     return response.data;
   },
   register: async (userData: RegisterData): Promise<AuthResponse> => {
@@ -24,3 +40,4 @@ export const authAPI = {
     }
   },
 };
+

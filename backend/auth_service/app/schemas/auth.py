@@ -1,10 +1,30 @@
 from pydantic import BaseModel, EmailStr
-from typing import Optional
+from typing import Optional, List
+
+
+class CheckEmailRequest(BaseModel):
+    email: EmailStr
+
+
+class TenantInfo(BaseModel):
+    id: str
+    name: str
+    logo_url: Optional[str] = None
+
+    class Config:
+        from_attributes = True
+
+
+class CheckEmailResponse(BaseModel):
+    user_exists: bool
+    is_super_admin: bool = False
+    tenants: List[TenantInfo] = []
 
 
 class LoginRequest(BaseModel):
     email: EmailStr
     password: str
+    tenant_id: Optional[str] = None  # Optional for super admins
 
 
 class UserLogin(BaseModel):

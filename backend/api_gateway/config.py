@@ -16,7 +16,7 @@ class Settings(BaseSettings):
     ALGORITHM: str = "HS256"
 
     REDIS_URL: str = "redis://localhost:6379"
-    PERMISSION_CACHE_TTL: int = 3600  # 1 hour in seconds
+    PERMISSION_CACHE_TTL: int = 86400  # 1 day in seconds
 
     model_config = SettingsConfigDict(env_file=".env")
 
