@@ -8,6 +8,7 @@ FEATURES = [
     ("user", "User Management", "Manage users and their accounts"),
     ("role", "Role Management", "Manage roles and permissions"),
     ("vendor", "Vendor Management", "Manage vendors and suppliers"),
+    ("invitation", "Invitation Management", "Manage vendor invitations"),
     ("po", "Purchase Orders", "Manage purchase orders"),
     ("report", "Reports", "View and export reports"),
     ("ai", "AI Features", "AI-powered insights and features"),
@@ -33,6 +34,11 @@ PERMISSIONS = [
     ("vendor.update", "Update vendors", "vendor"),
     ("vendor.read", "View vendors", "vendor"),
     ("vendor.deactivate", "Deactivate vendors", "vendor"),
+
+    ("invitation.create", "Create invitations", "invitation"),
+    ("invitation.read", "View invitations", "invitation"),
+    ("invitation.update", "Update invitations", "invitation"),
+    ("invitation.delete", "Delete invitations", "invitation"),
 
     ("po.create", "Create purchase orders", "po"),
     ("po.approve", "Approve purchase orders", "po"),
