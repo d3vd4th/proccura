@@ -4,9 +4,8 @@ export interface InvitationData {
     id: string;
     email: string;
     business_name: string;
-    status: 'pending' | 'pre_registered' | 'expired';
+    status: 'PENDING' | 'PRE_REGISTERED' | 'EXPIRED';
     created_at: string;
-    updated_at?: string;
 }
 
 export interface CreateInvitationData {
@@ -14,16 +13,17 @@ export interface CreateInvitationData {
     business_name: string;
 }
 
-export interface InvitationsResponse {
-    invitations: InvitationData[];
+export interface PaginatedResponse<T> {
+    items: T[];
     total: number;
     page: number;
     limit: number;
+    total_pages: number;
 }
 
 export const invitationsAPI = {
-    getAll: async (params?: { page?: number; limit?: number; search?: string; status?: string }): Promise<InvitationData[]> => {
-        const response = await apiClient.get<InvitationData[]>('/api/v1/invitations', { params });
+    getAll: async (params?: { page?: number; limit?: number; search?: string; status?: string }): Promise<PaginatedResponse<InvitationData>> => {
+        const response = await apiClient.get<PaginatedResponse<InvitationData>>('/api/v1/invitations', { params });
         return response.data;
     },
 

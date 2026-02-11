@@ -10,22 +10,15 @@ from jose import JWTError
 
 
 def check_email_for_tenants(db: Session, email: str) -> Tuple[bool, bool, List[dict]]:
-    """
-    Check if user exists and return their associated tenants.
-    Returns: (user_exists: bool, is_super_admin: bool, tenants: list of tenant dicts)
-    """
+   
     user = db.query(User).filter(User.email == email).first()
     
     if not user or not user.is_active:
         return False, False, []
     
-    # Super admin can access all tenants
     if user.is_super_admin:
-        # tenants = db.query(Tenant).filter(Tenant.is_active == True).all()
-
         tenants = []
     else:
-        # Regular users only see their assigned tenants
         tenants = (
             db.query(Tenant)
             .join(TenantUser, TenantUser.tenant_id == Tenant.id)

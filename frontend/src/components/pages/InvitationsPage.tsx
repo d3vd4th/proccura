@@ -32,6 +32,8 @@ export const InvitationsPage = () => {
     const [invitations, setInvitations] = useState<InvitationData[]>([]);
     const [currentPage, setCurrentPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
+    const [total, setTotal] = useState(0);
+    const [pageSize, setPageSize] = useState(10);
     const [search, setSearch] = useState('');
     const [statusFilter, setStatusFilter] = useState('');
 
@@ -51,25 +53,23 @@ export const InvitationsPage = () => {
 
     const fetchInvitations = useCallback(async () => {
         try {
-
             const data = await invitationsAPI.getAll({
                 page: currentPage,
-                limit: 10,
+                limit: pageSize,
                 search: search || undefined,
                 status: statusFilter || undefined,
             });
-            setInvitations(data);
-            setTotalPages(Math.ceil(data.length / 10) || 1);
+            setInvitations(data.items);
+            setTotalPages(data.total_pages);
+            setTotal(data.total);
         } catch (error) {
             console.error('Failed to fetch invitations:', error);
-        } finally {
-
         }
-    }, [currentPage, search, statusFilter, toast]);
+    }, [currentPage, pageSize, search, statusFilter]);
 
     useEffect(() => {
         fetchInvitations();
-    }, []);
+    }, [fetchInvitations]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -129,17 +129,17 @@ export const InvitationsPage = () => {
 
     const getStatusBadge = (status: string) => {
         const styles = {
-            pending: 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400',
-            pre_registered: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400',
-            expired: 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400',
+            PENDING: 'border text-amber-800 border-amber-500',
+            PRE_REGISTERED: 'border border-green-500 text-green-800',
+            EXPIRED: 'border border-red-500 text-red-800',
         };
         const labels = {
-            pending: 'Pending',
-            pre_registered: 'Pre-Registered',
-            expired: 'Expired',
+            PENDING: 'Pending',
+            PRE_REGISTERED: 'Pre-Registered',
+            EXPIRED: 'Expired',
         };
         return (
-            <span className={`px-2 py-1 rounded-full text-xs font-medium ${styles[status as keyof typeof styles] || styles.pending}`}>
+            <span className={`px-2 py-1 rounded-full text-xs font-medium ${styles[status as keyof typeof styles] || styles.PENDING}`}>
                 {labels[status as keyof typeof labels] || status}
             </span>
         );
@@ -184,22 +184,7 @@ export const InvitationsPage = () => {
             key: 'actions' as keyof InvitationData,
             label: 'Actions',
             render: (_: any, invitation: InvitationData) => (
-                <div className="flex items-center gap-2">
-                    {invitation.status === 'pending' && (
-                        <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleResend(invitation.id)}
-                            disabled={isResending === invitation.id}
-                            title="Resend Invitation"
-                        >
-                            {isResending === invitation.id ? (
-                                <Loader2 className="h-4 w-4 animate-spin" />
-                            ) : (
-                                <RefreshCw className="h-4 w-4" />
-                            )}
-                        </Button>
-                    )}
+                <div className="flex items-center">
                     <Button
                         variant="ghost"
                         size="sm"
@@ -208,31 +193,36 @@ export const InvitationsPage = () => {
                         className="text-destructive hover:text-destructive"
                     >
                         {isDeleting === invitation.id ? (
-                            <Loader2 className="h-4 w-4 animate-spin" />
+                            <Loader2 className="h-2 w-2 animate-spin" />
                         ) : (
-                            <Trash2 className="h-4 w-4" />
+                            <Trash2 className="h-2 w-2" />
                         )}
                     </Button>
+                    {invitation.status === 'PENDING' && (
+                        <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleResend(invitation.id)}
+                            disabled={isResending === invitation.id}
+                            title="Resend Invitation"
+                        >
+                            {isResending === invitation.id ? (
+                                <Loader2 className="h-2 w-2 animate-spin" />
+                            ) : (
+                                <RefreshCw className="h-2 w-2" />
+                            )}
+                        </Button>
+                    )}
                 </div>
             ),
         },
     ] as any;
 
-    const statusOptions = [
-        { value: '', label: 'All Status' },
-        { value: 'pending', label: 'Pending' },
-        { value: 'pre_registered', label: 'Pre-Registered' },
-        { value: 'expired', label: 'Expired' },
-    ];
-
     return (
-        <div>
-            <div className="flex items-center justify-between">
-            </div>
-
+        <div className="flex flex-col h-full">
             {/* Invitations Table */}
-            <Card>
-                <CardHeader className="flex flex-row items-center justify-between">
+            <Card className="flex flex-col flex-1 min-h-0">
+                <CardHeader className="flex flex-row items-center justify-between shrink-0">
                     <div>
                         <CardTitle>Invitations</CardTitle>
                         <CardDescription>Manage your invitations</CardDescription>
@@ -242,26 +232,36 @@ export const InvitationsPage = () => {
                         Send Invite
                     </Button>
                 </CardHeader>
-                <CardContent className="space-y-4">
-                    <TableFilter
-                        searchValue={search}
-                        onSearchChange={setSearch}
-                        searchPlaceholder="Search by email or business name..."
-                        filters={[
-                            {
-                                value: statusFilter,
-                                onChange: setStatusFilter,
-                                options: statusOptions,
-                            },
-                        ]}
-                    />
+                <CardContent className="flex flex-col flex-1 min-h-0 gap-4">
+                    <div className="shrink-0">
+                        <TableFilter
+                            onSearchChange={(val) => { setSearch(val); setCurrentPage(1); }}
+                            searchPlaceholder="Search by email or business name..."
+                            filterOptions={[
+                                {
+                                    key: 'status',
+                                    label: 'Status',
+                                    options: [
+                                        { value: 'PENDING', label: 'Pending' },
+                                        { value: 'PRE_REGISTERED', label: 'Pre-Registered' },
+                                        { value: 'EXPIRED', label: 'Expired' },
+                                    ],
+                                },
+                            ]}
+                            onFilterChange={(_key, value) => { setStatusFilter(value); setCurrentPage(1); }}
+                            onClear={() => { setSearch(''); setStatusFilter(''); setCurrentPage(1); }}
+                        />
+                    </div>
 
                     <DataTable
                         columns={columns}
                         data={invitations}
                         currentPage={currentPage}
                         totalPages={totalPages}
+                        total={total}
+                        pageSize={pageSize}
                         onPageChange={setCurrentPage}
+                        onPageSizeChange={setPageSize}
                     />
                 </CardContent>
             </Card>
