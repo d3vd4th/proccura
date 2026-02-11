@@ -31,3 +31,29 @@ async def vendor_root(request: Request):
         settings.VENDOR_SERVICE_URL,
         "/api/v1/invitations"
     )
+
+
+@router.api_route(
+    "/api/v1/pre-registrations/{path:path}",
+    methods=["GET", "POST", "PUT", "DELETE", "PATCH"]
+)
+async def pre_registrations_proxy(path: str, request: Request):
+    """Proxy /api/v1/pre-registrations/* requests to vendor service"""
+    return await proxy_request(
+        request,
+        settings.VENDOR_SERVICE_URL,
+        f"/api/v1/pre-registrations/{path}"
+    )
+
+
+@router.api_route(
+    "/api/v1/pre-registrations",
+    methods=["GET", "POST", "PUT", "DELETE", "PATCH"]
+)
+async def pre_registrations_root(request: Request):
+    """Handle requests to /api/v1/pre-registrations (no subpath)"""
+    return await proxy_request(
+        request,
+        settings.VENDOR_SERVICE_URL,
+        "/api/v1/pre-registrations"
+    )

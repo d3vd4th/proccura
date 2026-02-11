@@ -96,6 +96,27 @@ export const PreRegistrationPage = () => {
         { number: 3, label: 'Additional Details' },
     ];
 
+    const isStepValid = () => {
+        if (currentStep === 1) {
+            return (
+                formData.business_name.trim() !== '' &&
+                formData.contact_person.trim() !== '' &&
+                formData.email.trim() !== '' &&
+                formData.phone.trim() !== ''
+            );
+        }
+        if (currentStep === 2) {
+            return (
+                formData.address_line1.trim() !== '' &&
+                formData.city.trim() !== '' &&
+                formData.state.trim() !== '' &&
+                formData.postal_code.trim() !== '' &&
+                formData.country.trim() !== ''
+            );
+        }
+        return true; // Step 3 has no required fields
+    };
+
     // Loading State
     if (pageState === 'loading') {
         return (
@@ -167,10 +188,10 @@ export const PreRegistrationPage = () => {
                                 type="button"
                                 onClick={() => setCurrentStep(step.number)}
                                 className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-all ${currentStep === step.number
-                                        ? 'bg-primary text-primary-foreground'
-                                        : currentStep > step.number
-                                            ? 'bg-green-100 text-green-700'
-                                            : 'bg-muted text-muted-foreground'
+                                    ? 'bg-primary text-primary-foreground'
+                                    : currentStep > step.number
+                                        ? 'bg-green-100 text-green-700'
+                                        : 'bg-muted text-muted-foreground'
                                     }`}
                             >
                                 <span className="w-6 h-6 rounded-full bg-white/20 flex items-center justify-center text-xs font-bold">
@@ -382,13 +403,18 @@ export const PreRegistrationPage = () => {
                                 {currentStep < 3 ? (
                                     <Button
                                         type="button"
-                                        onClick={() => setCurrentStep(currentStep + 1)}
+                                        onClick={() => {
+                                            if (isStepValid()) {
+                                                setCurrentStep(currentStep + 1);
+                                            }
+                                        }}
+                                        disabled={!isStepValid()}
                                     >
                                         Next
                                         <ArrowRight className="h-4 w-4 ml-2" />
                                     </Button>
                                 ) : (
-                                    <Button type="submit" disabled={isSubmitting}>
+                                    <Button type="submit" disabled={isSubmitting || !isStepValid()}>
                                         {isSubmitting ? (
                                             <>
                                                 <Loader2 className="h-4 w-4 animate-spin mr-2" />

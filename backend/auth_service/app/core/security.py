@@ -17,16 +17,18 @@ def verify_password(plain: str, hashed: str) -> bool:
 
 def create_access_token(
     subject: str,
-    is_super_admin: bool
+    is_super_admin: bool,
+    tenant_id: Optional[str] = None,
+    role_id: Optional[str] = None
 ) -> str:
     """
-    Create access token with minimal claims.
-    Contains: user_id, is_super_admin
-    Tenant and role context managed via headers at gateway.
+    Create access token with tenant and role context.
     """
     payload = {
         "sub": subject,
         "is_super_admin": is_super_admin,
+        "tenant_id": tenant_id,
+        "role_id": role_id,
         "type": "access",
         "exp": datetime.utcnow() + timedelta(
             minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES
@@ -34,12 +36,18 @@ def create_access_token(
     }
     return jwt.encode(payload, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
 
-def create_refresh_token(subject: str) -> str:
+def create_refresh_token(
+    subject: str,
+    tenant_id: Optional[str] = None,
+    role_id: Optional[str] = None
+) -> str:
     """
-    Create refresh token.
+    Create refresh token with context.
     """
     payload = {
         "sub": subject,
+        "tenant_id": tenant_id,
+        "role_id": role_id,
         "type": "refresh",
         "exp": datetime.utcnow() + timedelta(
             days=settings.REFRESH_TOKEN_EXPIRE_DAYS

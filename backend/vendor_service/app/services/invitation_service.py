@@ -19,7 +19,8 @@ class InvitationService:
     def create_invitation(
         db: Session, 
         invitation_in: InvitationCreate,
-        tenant_id: str
+        tenant_id: str,
+        created_by: Optional[str] = None
     ) -> Invitation:
         token = InvitationService._generate_token()
         

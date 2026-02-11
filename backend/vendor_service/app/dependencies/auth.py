@@ -12,10 +12,12 @@ class UserContext:
         self,
         user_id: str,
         tenant_id: str,
+        email: Optional[str] = None,
         role_id: Optional[str] = None,
         is_super_admin: bool = False
     ):
         self.id = user_id
+        self.email = email
         self.tenant_id = tenant_id
         self.role_id = role_id
         self.is_super_admin = is_super_admin
@@ -31,6 +33,7 @@ def get_current_user(request: Request) -> UserContext:
     if not user:
         # Fallback: try headers (in case gateway forwards via headers)
         user_id = request.headers.get("X-User-ID")
+        email = request.headers.get("X-User-Email")
         tenant_id = request.headers.get("X-Tenant-ID")
         role_id = request.headers.get("X-Role-ID")
         is_super_admin = request.headers.get("X-Is-Super-Admin", "false").lower() == "true"
@@ -40,6 +43,7 @@ def get_current_user(request: Request) -> UserContext:
         
         return UserContext(
             user_id=user_id,
+            email=email,
             tenant_id=tenant_id,
             role_id=role_id,
             is_super_admin=is_super_admin
@@ -47,6 +51,7 @@ def get_current_user(request: Request) -> UserContext:
     
     return UserContext(
         user_id=user.get("id"),
+        email=user.get("email"),
         tenant_id=user.get("tenant_id"),
         role_id=user.get("role_id"),
         is_super_admin=user.get("is_super_admin", False)

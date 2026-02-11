@@ -24,6 +24,20 @@ async def proxy_request(
         k: v for k, v in request.headers.items() 
         if k.lower() not in ["host", "content-length"]
     }
+
+    # Inject user context headers if authenticated
+    user = getattr(request.state, "user", None)
+    if user:
+        if user.get("id"):
+            headers["X-User-ID"] = str(user["id"])
+        if user.get("email"):
+            headers["X-User-Email"] = str(user["email"])
+        if user.get("tenant_id"):
+            headers["X-Tenant-ID"] = str(user["tenant_id"])
+        if user.get("role_id"):
+            headers["X-Role-ID"] = str(user["role_id"])
+        if "is_super_admin" in user:
+            headers["X-Is-Super-Admin"] = str(user["is_super_admin"]).lower()
     
     try:
         async with httpx.AsyncClient(timeout=30.0) as client:

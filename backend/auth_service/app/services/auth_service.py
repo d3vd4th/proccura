@@ -100,16 +100,24 @@ def authenticate_user(db: Session, email: str, password: str, tenant_id: Optiona
 
 def issue_tokens(user: User):
     """
-    Issue access and refresh tokens.
-    Tokens contain only user_id and is_super_admin.
-    Tenant context is managed via X-Tenant-ID header.
+    Issue access and refresh tokens with tenant context.
+    Context is derived from user object (set during authentication).
     """
+    tenant_id = str(user.tenant_id) if hasattr(user, "tenant_id") and user.tenant_id else None
+    role_id = str(user.role_id) if hasattr(user, "role_id") and user.role_id else None
+
     access_token = create_access_token(
-        subject=user.id,
-        is_super_admin=user.is_super_admin
+        subject=str(user.id),
+        is_super_admin=user.is_super_admin,
+        tenant_id=tenant_id,
+        role_id=role_id
     )
 
-    refresh_token = create_refresh_token(subject=user.id)
+    refresh_token = create_refresh_token(
+        subject=str(user.id),
+        tenant_id=tenant_id,
+        role_id=role_id
+    )
 
     return access_token, refresh_token
 
@@ -117,11 +125,21 @@ def issue_tokens(user: User):
 def refresh_access_token(db: Session, refresh_token: str):
     """
     Refresh access token.
-    Returns a new access token with same user info.
+    Maintains tenant and role context if present.
     """
     try:
         payload = decode_token(refresh_token)
         user_id = payload.get("sub")
+        tenant_id = payload.get("tenant_id")
+        role_id = payload.get("role_id")
+        
+        # Verify type
+        if payload.get("type") != "refresh":
+             raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Invalid token type"
+            )
+            
     except JWTError:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -135,10 +153,28 @@ def refresh_access_token(db: Session, refresh_token: str):
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="User not found or inactive"
         )
+    
+    # If tenant context exists, verify it's still valid
+    if tenant_id and not user.is_super_admin:
+        tenant_user = db.query(TenantUser).filter(
+            TenantUser.user_id == user.id,
+            TenantUser.tenant_id == tenant_id
+        ).first()
+
+        if not tenant_user:
+            # Access revoked
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Access to organization revoked"
+            )
+        # Update role_id from DB in case it changed
+        role_id = str(tenant_user.role_id) if tenant_user.role_id else None
 
     access_token = create_access_token(
-        subject=user.id,
-        is_super_admin=user.is_super_admin
+        subject=str(user.id),
+        is_super_admin=user.is_super_admin,
+        tenant_id=tenant_id,
+        role_id=role_id
     )
 
     return access_token

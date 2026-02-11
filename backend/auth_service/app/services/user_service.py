@@ -1,7 +1,10 @@
 from sqlalchemy.orm import Session
 from app.models.user import User
+from app.models.role import Role
 from app.models.tenant_user import TenantUser, TenantUserStatus
+from app.models.tenant import Tenant
 from app.core.security import hash_password
+from app.services.email_service import send_welcome_email
 
 
 def create_user(
@@ -48,6 +51,21 @@ def create_user(
 
     db.add(tenant_user)
     db.commit()
+    # Get Tenant Name for email
+    tenant = db.query(Tenant).filter(Tenant.id == tenant_id).first()
+    tenant_name = tenant.name if tenant else "Proccura"
+
+    # Get Role Name for email
+    role = db.query(Role).filter(Role.id == payload.role_id).first()
+    role_name = role.name if role else "User"
+
+    # Send Welcome Email
+    send_welcome_email(
+        to_email=user.email,
+        first_name=user.first_name,
+        tenant_name=tenant_name,
+        role_name=role_name,
+    )
 
     user.role_id = payload.role_id
     return user

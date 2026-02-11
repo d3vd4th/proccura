@@ -13,3 +13,4 @@ export { QueriesPage } from './QueriesPage'
 export { ReportsPage } from './ReportsPage'
 export { InvitationsPage } from './InvitationsPage'
 export { PreRegistrationPage } from './PreRegistrationPage'
+export { PreRegistrationsPage } from './PreRegistrationsPage';

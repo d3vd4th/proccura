@@ -77,5 +77,10 @@ class VendorPreRegistrationOut(BaseModel):
     business_type: Optional[str] = None
     created_at: datetime
 
-    class Config:
-        from_attributes = True
+
+class PaginatedVendorPreRegistrations(BaseModel):
+    items: List[VendorPreRegistrationOut]
+    total: int
+    page: int
+    limit: int
+    total_pages: int

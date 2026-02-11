@@ -1,9 +1,11 @@
 from sqlalchemy.orm import Session
+from typing import Optional
 from fastapi import HTTPException, status
 from app.models.invitation import Invitation
 from app.models.vendor_pre_registration import VendorPreRegistration
 from app.schemas.invitation import VendorPreRegistrationCreate
 from app.services.invitation_service import InvitationService
+from app.services.email_service import send_pre_registration_notification
 
 
 class PreRegistrationService:
@@ -61,5 +63,47 @@ class PreRegistrationService:
 
         db.commit()
         db.refresh(pre_registration)
+        
+        
+        # Send notification to the inviter
+        # FIXME: Notification disabled as created_by_email was removed by request.
+        # Need to fetch user email using invitation.created_by (UUID) from Auth Service to re-enable.
+        '''
+        if invitation.created_by_email:
+            send_pre_registration_notification(
+                to_email=invitation.created_by_email,
+                vendor_name=pre_registration.contact_person,
+                business_name=pre_registration.business_name,
+            )
+        '''
 
         return pre_registration
+
+    @staticmethod
+    def get_pre_registrations(
+        db: Session,
+        tenant_id: str,
+        page: int = 1,
+        limit: int = 10,
+        search: Optional[str] = None
+    ) -> dict:
+        query = db.query(VendorPreRegistration).filter(VendorPreRegistration.tenant_id == tenant_id)
+
+        if search:
+            query = query.filter(
+                (VendorPreRegistration.business_name.ilike(f"%{search}%")) |
+                (VendorPreRegistration.email.ilike(f"%{search}%"))
+            )
+
+        total = query.count()
+        total_pages = (total + limit - 1) // limit
+
+        items = query.order_by(VendorPreRegistration.created_at.desc()).offset((page - 1) * limit).limit(limit).all()
+
+        return {
+            "items": items,
+            "total": total,
+            "page": page,
+            "limit": limit,
+            "total_pages": total_pages
+        }
