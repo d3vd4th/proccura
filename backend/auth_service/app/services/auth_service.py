@@ -109,13 +109,13 @@ def issue_tokens(user: User):
     access_token = create_access_token(
         subject=str(user.id),
         is_super_admin=user.is_super_admin,
-        tenant_id=tenant_id,
+        # tenant_id=tenant_id,
         role_id=role_id
     )
 
     refresh_token = create_refresh_token(
         subject=str(user.id),
-        tenant_id=tenant_id,
+        # tenant_id=tenant_id,
         role_id=role_id
     )
 

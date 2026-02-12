@@ -89,7 +89,7 @@ export const DataTable = <T extends { id: string }>({
                 </table>
 
                 {/* Scrollable body */}
-                <div className="flex-1 overflow-y-auto">
+                <div className="flex-1 overflow-y-auto min-h-auto ">
                     <table className="w-full">
                         <tbody>
                             {!data || data.length === 0 ? (
@@ -162,42 +162,42 @@ export const DataTable = <T extends { id: string }>({
                 </div>
 
                 {/* Center: Shadcn Pagination */}
-                
-                    <Pagination>
-                        <PaginationContent>
-                            <PaginationItem>
-                                <PaginationPrevious
-                                    onClick={() => currentPage > 1 && onPageChange(currentPage - 1)}
-                                    className={currentPage === 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
-                                />
-                            </PaginationItem>
 
-                            {getVisiblePages().map((page, idx) =>
-                                typeof page === 'string' ? (
-                                    <PaginationItem key={`${page}-${idx}`}>
-                                        <PaginationEllipsis />
-                                    </PaginationItem>
-                                ) : (
-                                    <PaginationItem key={page}>
-                                        <PaginationLink
-                                            onClick={() => onPageChange(page)}
-                                            isActive={page === currentPage}
-                                            className="cursor-pointer"
-                                        >
-                                            {page}
-                                        </PaginationLink>
-                                    </PaginationItem>
-                                )
-                            )}
+                <Pagination>
+                    <PaginationContent>
+                        <PaginationItem>
+                            <PaginationPrevious
+                                onClick={() => currentPage > 1 && onPageChange(currentPage - 1)}
+                                className={currentPage === 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                            />
+                        </PaginationItem>
 
-                            <PaginationItem>
-                                <PaginationNext
-                                    onClick={() => currentPage < totalPages && onPageChange(currentPage + 1)}
-                                    className={currentPage === totalPages ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
-                                />
-                            </PaginationItem>
-                        </PaginationContent>
-                    </Pagination>
+                        {getVisiblePages().map((page, idx) =>
+                            typeof page === 'string' ? (
+                                <PaginationItem key={`${page}-${idx}`}>
+                                    <PaginationEllipsis />
+                                </PaginationItem>
+                            ) : (
+                                <PaginationItem key={page}>
+                                    <PaginationLink
+                                        onClick={() => onPageChange(page)}
+                                        isActive={page === currentPage}
+                                        className="cursor-pointer"
+                                    >
+                                        {page}
+                                    </PaginationLink>
+                                </PaginationItem>
+                            )
+                        )}
+
+                        <PaginationItem>
+                            <PaginationNext
+                                onClick={() => currentPage < totalPages && onPageChange(currentPage + 1)}
+                                className={currentPage === totalPages ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                            />
+                        </PaginationItem>
+                    </PaginationContent>
+                </Pagination>
 
                 {/* Right: Page Size Selector */}
                 <div className="flex items-center gap-2 min-w-[150px] justify-end">

@@ -18,7 +18,7 @@ def verify_password(plain: str, hashed: str) -> bool:
 def create_access_token(
     subject: str,
     is_super_admin: bool,
-    tenant_id: Optional[str] = None,
+    # tenant_id: Optional[str] = None,
     role_id: Optional[str] = None
 ) -> str:
     """
@@ -27,7 +27,7 @@ def create_access_token(
     payload = {
         "sub": subject,
         "is_super_admin": is_super_admin,
-        "tenant_id": tenant_id,
+        # "tenant_id": tenant_id,
         "role_id": role_id,
         "type": "access",
         "exp": datetime.utcnow() + timedelta(
@@ -38,7 +38,7 @@ def create_access_token(
 
 def create_refresh_token(
     subject: str,
-    tenant_id: Optional[str] = None,
+    # tenant_id: Optional[str] = None,
     role_id: Optional[str] = None
 ) -> str:
     """
@@ -46,7 +46,7 @@ def create_refresh_token(
     """
     payload = {
         "sub": subject,
-        "tenant_id": tenant_id,
+        # "tenant_id": tenant_id,
         "role_id": role_id,
         "type": "refresh",
         "exp": datetime.utcnow() + timedelta(

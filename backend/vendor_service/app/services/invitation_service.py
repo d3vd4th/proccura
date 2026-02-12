@@ -28,6 +28,7 @@ class InvitationService:
             tenant_id=tenant_id,
             business_name=invitation_in.business_name,
             email=invitation_in.email,
+            created_by=created_by,
             invitation_token=token,
         )
         db.add(db_invitation)

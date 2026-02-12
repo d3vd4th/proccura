@@ -120,7 +120,7 @@ export const PreRegistrationPage = () => {
     // Loading State
     if (pageState === 'loading') {
         return (
-            <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center">
+            <div className="min-h-screen bg-linear-to-br from-slate-50 to-slate-100 flex items-center justify-center">
                 <div className="flex flex-col items-center gap-4">
                     <Loader2 className="h-8 w-8 animate-spin text-primary" />
                     <p className="text-muted-foreground">Verifying your invitation...</p>
@@ -132,7 +132,7 @@ export const PreRegistrationPage = () => {
     // Error State
     if (pageState === 'error') {
         return (
-            <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center p-4">
+            <div className="min-h-screen bg-linear-to-br from-slate-50 to-slate-100 flex items-center justify-center p-4">
                 <Card className="w-full max-w-md">
                     <CardContent className="pt-8 pb-8 text-center">
                         <AlertCircle className="h-16 w-16 text-destructive mx-auto mb-4" />
@@ -147,7 +147,7 @@ export const PreRegistrationPage = () => {
     // Success State
     if (pageState === 'success') {
         return (
-            <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center p-4">
+            <div className="min-h-screen bg-linear-to-br from-slate-50 to-slate-100 flex items-center justify-center p-4">
                 <Card className="w-full max-w-md">
                     <CardContent className="pt-8 pb-8 text-center">
                         <CheckCircle2 className="h-16 w-16 text-green-500 mx-auto mb-4" />
@@ -166,7 +166,7 @@ export const PreRegistrationPage = () => {
 
     // Form State
     return (
-        <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 py-8 px-4">
+        <div className="min-h-screen bg-linear-to-br from-slate-50 to-slate-100 py-8 px-4">
             <div className="max-w-2xl mx-auto">
                 {/* Header */}
                 <div className="text-center mb-8">

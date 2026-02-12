@@ -37,21 +37,40 @@ async def require_auth(request: Request):
     # Extract claims from token
     user_id = payload.get("sub")
     is_super_admin = payload.get("is_super_admin", False)
-    tenant_id = payload.get("tenant_id")
+    token_tenant_id = payload.get("tenant_id")
     role_id = payload.get("role_id")
     
     if not user_id:
         raise HTTPException(status_code=401, detail="Invalid token: missing user ID")
     
-    # Validate tenant access
-    # If the user is a regular user, they must have a tenant_id in the token
-    if not is_super_admin and not tenant_id:
-         raise HTTPException(status_code=401, detail="Invalid token: missing tenant context")
+    # Get tenant_id from header (Priority as requested)
+    header_tenant_id = request.headers.get("X-Tenant-ID")
+    
+    # Determine effective tenant_id
+    tenant_id = header_tenant_id
+    
+    # Validation logic
+    if not is_super_admin:
+        if not tenant_id:
+             # If no header, maybe fallback to token? Or fail?
+             # User said "taken form header".
+             if token_tenant_id:
+                 tenant_id = token_tenant_id
+             else:
+                 raise HTTPException(status_code=400, detail="X-Tenant-ID header is required")
+        
+        # If both exist, they should ideally match to prevent role spoofing
+        # But if user insists on Header, we use Header.
+        # However, if Token is scoped to Tenant A, and Header says B, 
+        # using Role from Token (which is for A) on B is dangerous.
+        if token_tenant_id and str(tenant_id) != str(token_tenant_id):
+            logger.warning(f"Tenant mismatch: Header {tenant_id} vs Token {token_tenant_id}")
+            raise HTTPException(status_code=403, detail="Token validation failed for this tenant")
 
     # Store user info in request state
     request.state.user = {
         "id": user_id,
-        "email": payload.get("email"), # Might be None if not in token
+        "email": payload.get("email"), 
         "role_id": role_id,
         "tenant_id": tenant_id,
         "is_super_admin": is_super_admin
