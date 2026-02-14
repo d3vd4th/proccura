@@ -89,7 +89,7 @@ export const DataTable = <T extends { id: string }>({
                 </table>
 
                 {/* Scrollable body */}
-                <div className="flex-1 overflow-y-auto min-h-auto ">
+                <div className="flex-1 overflow-y-auto ">
                     <table className="w-full">
                         <tbody>
                             {!data || data.length === 0 ? (
