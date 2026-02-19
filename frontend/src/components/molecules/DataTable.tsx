@@ -43,7 +43,6 @@ export const DataTable = <T extends { id: string }>({
     actions,
 }: DataTableProps<T>) => {
 
-    // Generate visible page numbers with ellipsis
     const getVisiblePages = (): (number | 'ellipsis-start' | 'ellipsis-end')[] => {
         if (totalPages <= 5) {
             return Array.from({ length: totalPages }, (_, i) => i + 1);
