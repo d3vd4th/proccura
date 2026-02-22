@@ -197,7 +197,6 @@ export const DataTable = <T extends { id: string }>({
                     </PaginationContent>
                 </Pagination>
 
-                {/* Right: Page Size Selector */}
                 <div className="flex items-center gap-2 min-w-[150px] justify-end">
                     {onPageSizeChange && (
                         <>
