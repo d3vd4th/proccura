@@ -128,10 +128,10 @@ export const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
                                 onClick={() => onClose()}
                                 className={({ isActive }) =>
                                     cn(
-                                        'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium ',
+                                        'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors',
                                         isActive
-                                            ? 'bg-[#e8e8e8] text-black shadow-sm'
-                                            : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
+                                            ? 'bg-primary/10 text-primary dark:bg-primary/20 dark:text-primary-foreground shadow-sm'
+                                            : 'text-muted-foreground hover:bg-muted hover:text-foreground'
                                     )
                                 }
                             >

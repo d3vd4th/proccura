@@ -173,7 +173,7 @@ def refresh_access_token(db: Session, refresh_token: str):
     access_token = create_access_token(
         subject=str(user.id),
         is_super_admin=user.is_super_admin,
-        tenant_id=tenant_id,
+        # tenant_id=tenant_id,
         role_id=role_id
     )
 

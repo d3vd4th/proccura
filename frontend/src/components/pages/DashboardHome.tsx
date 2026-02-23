@@ -1,4 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/atoms';
+import { useTheme } from '@/components/atoms';
 import {
     ShoppingCart,
     Receipt,
@@ -20,8 +21,8 @@ const stats = [
         change: '+12%',
         trend: 'up',
         icon: ShoppingCart,
-        bgColor: 'bg-blue-100',
-        iconColor: 'text-blue-600',
+        bgColor: 'bg-blue-100 dark:bg-blue-900/20',
+        iconColor: 'text-blue-600 dark:text-blue-400',
     },
     {
         title: 'Pending Invoices',
@@ -29,8 +30,8 @@ const stats = [
         change: '-8%',
         trend: 'down',
         icon: Receipt,
-        bgColor: 'bg-orange-100',
-        iconColor: 'text-orange-600',
+        bgColor: 'bg-orange-100 dark:bg-orange-900/20',
+        iconColor: 'text-orange-600 dark:text-orange-400',
     },
     {
         title: 'Active RFQs',
@@ -38,8 +39,8 @@ const stats = [
         change: '+23%',
         trend: 'up',
         icon: FileText,
-        bgColor: 'bg-purple-100',
-        iconColor: 'text-purple-600',
+        bgColor: 'bg-purple-100 dark:bg-purple-900/20',
+        iconColor: 'text-purple-600 dark:text-purple-400',
     },
     {
         title: 'Active Vendors',
@@ -47,8 +48,8 @@ const stats = [
         change: '+5%',
         trend: 'up',
         icon: Users,
-        bgColor: 'bg-green-100',
-        iconColor: 'text-green-600',
+        bgColor: 'bg-green-100 dark:bg-green-900/20',
+        iconColor: 'text-green-600 dark:text-green-400',
     },
 ];
 
@@ -122,10 +123,10 @@ const pendingActions = [
 // Status badge component
 const StatusBadge = ({ status }: { status: string }) => {
     const styles: Record<string, string> = {
-        Approved: 'bg-green-100 text-green-700',
-        Pending: 'bg-yellow-100 text-yellow-700',
-        Draft: 'bg-gray-100 text-gray-700',
-        Rejected: 'bg-red-100 text-red-700',
+        Approved: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400',
+        Pending: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400',
+        Draft: 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300',
+        Rejected: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400',
     };
     return (
         <span className={`px-2.5 py-1 rounded-full text-xs font-medium ${styles[status] || styles.Draft}`}>
@@ -136,20 +137,29 @@ const StatusBadge = ({ status }: { status: string }) => {
 
 // Priority icon component
 const PriorityIcon = ({ priority }: { priority: string }) => {
-    if (priority === 'high') return <AlertCircle className="h-4 w-4 text-red-500" />;
-    if (priority === 'medium') return <Clock className="h-4 w-4 text-yellow-500" />;
-    return <CheckCircle className="h-4 w-4 text-green-500" />;
+    if (priority === 'high') return <AlertCircle className="h-4 w-4 text-red-500 dark:text-red-400" />;
+    if (priority === 'medium') return <Clock className="h-4 w-4 text-yellow-500 dark:text-yellow-400" />;
+    return <CheckCircle className="h-4 w-4 text-green-500 dark:text-green-400" />;
 };
 
 export const DashboardHome = () => {
+    const { theme } = useTheme();
+    const isDark = theme === 'dark';
+
+    const textColor = isDark ? '#E5E7EB' : '#374151';
+    const textMutedColor = isDark ? '#9CA3AF' : '#6B7280';
+    const gridColor = isDark ? '#374151' : '#F3F4F6';
+    const tooltipBg = isDark ? 'rgba(31, 41, 55, 0.95)' : 'rgba(255, 255, 255, 0.95)';
+    const tooltipBorder = isDark ? '#374151' : '#e5e7eb';
+
     // Procurement Spend Trend - Area Chart
     const spendTrendOption = {
         tooltip: {
             trigger: 'axis',
-            backgroundColor: 'rgba(255, 255, 255, 0.95)',
-            borderColor: '#e5e7eb',
+            backgroundColor: tooltipBg,
+            borderColor: tooltipBorder,
             borderWidth: 1,
-            textStyle: { color: '#374151' },
+            textStyle: { color: textColor },
             formatter: (params: any) => {
                 return `<div style="font-weight: 600">${params[0].name}</div>
                         <div style="color: #3B82F6">PO Amount: $${params[0].value.toLocaleString()}</div>
@@ -159,7 +169,7 @@ export const DashboardHome = () => {
         legend: {
             data: ['PO Amount', 'Invoice Paid'],
             bottom: 0,
-            textStyle: { color: '#6B7280' },
+            textStyle: { color: textMutedColor },
         },
         grid: {
             left: '3%',
@@ -174,15 +184,15 @@ export const DashboardHome = () => {
             data: ['Aug', 'Sep', 'Oct', 'Nov', 'Dec', 'Jan'],
             axisLine: { show: false },
             axisTick: { show: false },
-            axisLabel: { color: '#9CA3AF' },
+            axisLabel: { color: textMutedColor },
         },
         yAxis: {
             type: 'value',
             axisLine: { show: false },
             axisTick: { show: false },
-            splitLine: { lineStyle: { color: '#F3F4F6' } },
+            splitLine: { lineStyle: { color: gridColor } },
             axisLabel: {
-                color: '#9CA3AF',
+                color: textMutedColor,
                 formatter: (value: number) => `$${value / 1000}k`,
             },
         },
@@ -234,12 +244,15 @@ export const DashboardHome = () => {
     const poStatusOption = {
         tooltip: {
             trigger: 'item',
+            backgroundColor: tooltipBg,
+            borderColor: tooltipBorder,
+            textStyle: { color: textColor },
             formatter: '{b}: {c} ({d}%)',
         },
         legend: {
             orient: 'horizontal',
             bottom: 0,
-            textStyle: { color: '#6B7280', fontSize: 12 },
+            textStyle: { color: textMutedColor, fontSize: 12 },
         },
         series: [
             {
@@ -249,7 +262,7 @@ export const DashboardHome = () => {
                 avoidLabelOverlap: false,
                 itemStyle: {
                     borderRadius: 8,
-                    borderColor: '#fff',
+                    borderColor: isDark ? '#000000' : '#fff',
                     borderWidth: 2,
                 },
                 label: {
@@ -259,7 +272,7 @@ export const DashboardHome = () => {
                     fontSize: 16,
                     fontWeight: 'bold',
                     lineHeight: 22,
-                    color: '#374151',
+                    color: textColor,
                 },
                 emphasis: {
                     label: { show: true, fontSize: 18, fontWeight: 'bold' },
@@ -279,6 +292,9 @@ export const DashboardHome = () => {
         tooltip: {
             trigger: 'axis',
             axisPointer: { type: 'shadow' },
+            backgroundColor: tooltipBg,
+            borderColor: tooltipBorder,
+            textStyle: { color: textColor },
             formatter: (params: any) => `${params[0].name}<br/>Spend: $${params[0].value.toLocaleString()}`,
         },
         grid: {
@@ -292,9 +308,9 @@ export const DashboardHome = () => {
             type: 'value',
             axisLine: { show: false },
             axisTick: { show: false },
-            splitLine: { lineStyle: { color: '#F3F4F6' } },
+            splitLine: { lineStyle: { color: gridColor } },
             axisLabel: {
-                color: '#9CA3AF',
+                color: textMutedColor,
                 formatter: (value: number) => `$${value / 1000}k`,
             },
         },
@@ -303,7 +319,7 @@ export const DashboardHome = () => {
             data: ['FastShip', 'Prime Mat.', 'Global Tech', 'Quality Parts', 'Acme Supplies'],
             axisLine: { show: false },
             axisTick: { show: false },
-            axisLabel: { color: '#374151', fontSize: 12 },
+            axisLabel: { color: textColor, fontSize: 12 },
         },
         series: [
             {
@@ -316,7 +332,7 @@ export const DashboardHome = () => {
                         x: 0, y: 0, x2: 1, y2: 0,
                         colorStops: [
                             { offset: 0, color: '#7cadf7' },
-                            { offset: 1, color: '#4991fe' },
+                            { offset: 1, color: '#3B82F6' },
                         ],
                     },
                 },
@@ -330,11 +346,14 @@ export const DashboardHome = () => {
         tooltip: {
             trigger: 'axis',
             axisPointer: { type: 'shadow' },
+            backgroundColor: tooltipBg,
+            borderColor: tooltipBorder,
+            textStyle: { color: textColor },
         },
         legend: {
             data: ['RFQs Sent', 'Quotations Received'],
             bottom: 0,
-            textStyle: { color: '#6B7280' },
+            textStyle: { color: textMutedColor },
         },
         grid: {
             left: '3%',
@@ -348,14 +367,14 @@ export const DashboardHome = () => {
             data: ['Aug', 'Sep', 'Oct', 'Nov', 'Dec', 'Jan'],
             axisLine: { show: false },
             axisTick: { show: false },
-            axisLabel: { color: '#9CA3AF' },
+            axisLabel: { color: textMutedColor },
         },
         yAxis: {
             type: 'value',
             axisLine: { show: false },
             axisTick: { show: false },
-            splitLine: { lineStyle: { color: '#F3F4F6' } },
-            axisLabel: { color: '#9CA3AF' },
+            splitLine: { lineStyle: { color: gridColor } },
+            axisLabel: { color: textMutedColor },
         },
         series: [
             {
@@ -380,22 +399,22 @@ export const DashboardHome = () => {
             {/* Stats Cards */}
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
                 {stats.map((stat) => (
-                    <Card key={stat.title} className="border-0  hover:shadow-md transition-shadow">
+                    <Card key={stat.title} className="hover:shadow-md transition-shadow bg-card">
                         <CardContent className="p-5">
                             <div className="flex items-center justify-between">
                                 <div>
-                                    <p className="text-sm text-gray-500 mb-1">{stat.title}</p>
-                                    <p className="text-3xl font-bold text-gray-900">{stat.value}</p>
+                                    <p className="text-sm text-muted-foreground mb-1">{stat.title}</p>
+                                    <p className="text-3xl font-bold text-foreground">{stat.value}</p>
                                     <p className="text-sm mt-1 flex items-center gap-1">
                                         {stat.trend === 'up' ? (
                                             <TrendingUp className="h-3 w-3 text-green-500" />
                                         ) : (
                                             <TrendingDown className="h-3 w-3 text-red-500" />
                                         )}
-                                        <span className={stat.trend === 'up' ? 'text-green-600' : 'text-red-600'}>
+                                        <span className={stat.trend === 'up' ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}>
                                             {stat.change}
                                         </span>
-                                        <span className="text-gray-400">vs last month</span>
+                                        <span className="text-muted-foreground">vs last month</span>
                                     </p>
                                 </div>
                                 <div className={`p-3 rounded-xl ${stat.bgColor}`}>
@@ -410,9 +429,9 @@ export const DashboardHome = () => {
             {/* Charts Row 1 */}
             <div className="grid gap-6 lg:grid-cols-3">
                 {/* Procurement Spend Trend */}
-                <Card className="lg:col-span-2 border-0 ">
+                <Card className="lg:col-span-2 bg-card">
                     <CardHeader className="pb-2">
-                        <CardTitle className="text-lg font-semibold">Procurement Spend Trend</CardTitle>
+                        <CardTitle className="text-lg font-semibold text-foreground">Procurement Spend Trend</CardTitle>
                     </CardHeader>
                     <CardContent>
                         <ReactECharts option={spendTrendOption} style={{ height: '300px' }} />
@@ -420,9 +439,9 @@ export const DashboardHome = () => {
                 </Card>
 
                 {/* PO Status Distribution */}
-                <Card className="border-0 ">
+                <Card className="bg-card">
                     <CardHeader className="pb-2">
-                        <CardTitle className="text-lg font-semibold">PO Status</CardTitle>
+                        <CardTitle className="text-lg font-semibold text-foreground">PO Status</CardTitle>
                     </CardHeader>
                     <CardContent>
                         <ReactECharts option={poStatusOption} style={{ height: '300px' }} />
@@ -433,9 +452,9 @@ export const DashboardHome = () => {
             {/* Charts Row 2 */}
             <div className="grid gap-6 lg:grid-cols-2">
                 {/* Top Vendors */}
-                <Card className="border-0 ">
+                <Card className="bg-card">
                     <CardHeader className="pb-2">
-                        <CardTitle className="text-lg font-semibold">Top Vendors by Spend</CardTitle>
+                        <CardTitle className="text-lg font-semibold text-foreground">Top Vendors by Spend</CardTitle>
                     </CardHeader>
                     <CardContent>
                         <ReactECharts option={topVendorsOption} style={{ height: '280px' }} />
@@ -443,9 +462,9 @@ export const DashboardHome = () => {
                 </Card>
 
                 {/* RFQ Stats */}
-                <Card className="border-0 ">
+                <Card className="bg-card">
                     <CardHeader className="pb-2">
-                        <CardTitle className="text-lg font-semibold">RFQ & Quotation Activity</CardTitle>
+                        <CardTitle className="text-lg font-semibold text-foreground">RFQ & Quotation Activity</CardTitle>
                     </CardHeader>
                     <CardContent>
                         <ReactECharts option={rfqStatsOption} style={{ height: '280px' }} />
@@ -456,15 +475,15 @@ export const DashboardHome = () => {
             {/* Bottom Row */}
             <div className="grid gap-6 lg:grid-cols-3">
                 {/* Recent Purchase Orders */}
-                <Card className="lg:col-span-2 border-0 ">
+                <Card className="lg:col-span-2 bg-card">
                     <CardHeader className="pb-2">
-                        <CardTitle className="text-lg font-semibold">Recent Purchase Orders</CardTitle>
+                        <CardTitle className="text-lg font-semibold text-foreground">Recent Purchase Orders</CardTitle>
                     </CardHeader>
                     <CardContent>
                         <div className="overflow-x-auto">
                             <table className="w-full">
                                 <thead>
-                                    <tr className="text-left text-sm text-gray-500 border-b">
+                                    <tr className="text-left text-sm text-muted-foreground border-b border-border">
                                         <th className="pb-3 font-medium">PO Number</th>
                                         <th className="pb-3 font-medium">Vendor</th>
                                         <th className="pb-3 font-medium">Amount</th>
@@ -474,14 +493,14 @@ export const DashboardHome = () => {
                                 </thead>
                                 <tbody>
                                     {recentPOs.map((po) => (
-                                        <tr key={po.poNumber} className="border-b last:border-0 hover:bg-gray-50">
-                                            <td className="py-3.5 text-sm font-medium text-blue-600">{po.poNumber}</td>
-                                            <td className="py-3.5 text-sm text-gray-900">{po.vendor}</td>
-                                            <td className="py-3.5 text-sm font-medium text-gray-900">{po.amount}</td>
+                                        <tr key={po.poNumber} className="border-b border-border last:border-0 hover:bg-muted/50 transition-colors">
+                                            <td className="py-3.5 text-sm font-medium text-blue-600 dark:text-blue-400">{po.poNumber}</td>
+                                            <td className="py-3.5 text-sm text-foreground">{po.vendor}</td>
+                                            <td className="py-3.5 text-sm font-medium text-foreground">{po.amount}</td>
                                             <td className="py-3.5">
                                                 <StatusBadge status={po.status} />
                                             </td>
-                                            <td className="py-3.5 text-sm text-gray-500">{po.date}</td>
+                                            <td className="py-3.5 text-sm text-muted-foreground">{po.date}</td>
                                         </tr>
                                     ))}
                                 </tbody>
@@ -491,24 +510,24 @@ export const DashboardHome = () => {
                 </Card>
 
                 {/* Pending Actions */}
-                <Card className="border-0 ">
+                <Card className="bg-card">
                     <CardHeader className="pb-2">
-                        <CardTitle className="text-lg font-semibold">Pending Actions</CardTitle>
+                        <CardTitle className="text-lg font-semibold text-foreground">Pending Actions</CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-3">
                         {pendingActions.map((action, index) => (
                             <div
                                 key={index}
-                                className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 cursor-pointer transition-colors"
+                                className="flex items-start gap-3 p-3 bg-muted/30 rounded-lg hover:bg-muted/60 cursor-pointer transition-colors border border-transparent hover:border-border"
                             >
                                 <PriorityIcon priority={action.priority} />
                                 <div className="flex-1 min-w-0">
-                                    <p className="text-sm font-medium text-gray-900 truncate">{action.title}</p>
+                                    <p className="text-sm font-medium text-foreground truncate">{action.title}</p>
                                     <div className="flex items-center gap-2 mt-1">
-                                        <span className="text-xs px-2 py-0.5 bg-blue-100 text-blue-700 rounded">
+                                        <span className="text-xs px-2 py-0.5 bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-400 rounded">
                                             {action.type}
                                         </span>
-                                        <span className="text-xs text-gray-400">{action.time}</span>
+                                        <span className="text-xs text-muted-foreground">{action.time}</span>
                                     </div>
                                 </div>
                             </div>
