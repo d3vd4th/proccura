@@ -1,6 +1,7 @@
 import uuid
 from sqlalchemy import Column, String, DateTime, Text, func
 from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.orm import relationship
 from app.core.database import Base
 
 
@@ -32,3 +33,6 @@ class VendorPreRegistration(Base):
     products_services = Column(Text, nullable=True)
 
     created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+    # Relationships
+    questionnaire_assignments = relationship("VendorQuestionnaireAssignment", back_populates="pre_registration", cascade="all, delete-orphan")

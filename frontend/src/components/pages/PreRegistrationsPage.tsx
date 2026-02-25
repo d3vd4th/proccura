@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Loader2, Mail, Building2, User, Phone, MapPin } from 'lucide-react';
+import { Loader2, Mail, Building2, User, Phone, MapPin, Eye } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import {
     Card,
     CardContent,
@@ -20,6 +21,7 @@ export const PreRegistrationsPage = () => {
     const [search, setSearch] = useState('');
     const [isLoading, setIsLoading] = useState(true);
     const { toast } = useToast();
+    const navigate = useNavigate();
 
     const fetchRegistrations = useCallback(async () => {
         try {
@@ -138,6 +140,18 @@ export const PreRegistrationsPage = () => {
                             pageSize={pageSize}
                             onPageChange={setCurrentPage}
                             onPageSizeChange={setPageSize}
+                            actions={(item) => (
+                                <button
+                                    className="text-primary hover:text-primary/80 transition-colors"
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        navigate(`/pre-registrations/${item.id}`);
+                                    }}
+                                    title="View Vendor Details"
+                                >
+                                    <Eye className="h-4 w-4" />
+                                </button>
+                            )}
                         />
                     )}
                 </CardContent>

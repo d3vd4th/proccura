@@ -1,13 +1,13 @@
 import { useState } from 'react';
 import { useAppSelector } from '@/store/hooks';
-import { UserManagement, RoleManagement, TenantManagement } from '@/components/organisms';
+import { UserManagement, RoleManagement, TenantManagement, VendorQuestionnaireManagement } from '@/components/organisms';
 import {
     Tabs,
     TabsContent,
     TabsList,
     TabsTrigger,
 } from '@/components/atoms';
-type TabType = 'users' | 'roles' | 'tenants';
+type TabType = 'users' | 'roles' | 'tenants' | 'vendor-questionnaire';
 
 export const ConfigurePage = () => {
     const { user } = useAppSelector((state) => state.auth);
@@ -23,6 +23,7 @@ export const ConfigurePage = () => {
                     <TabsTrigger value="users">Users</TabsTrigger>
                     <TabsTrigger value="roles">Roles</TabsTrigger>
                     {isSuperAdmin && <TabsTrigger value="tenants">Tenants</TabsTrigger>}
+                    <TabsTrigger value="vendor-questionnaire">Vendor Questionnaire</TabsTrigger>
                 </TabsList>
 
                 {/* Tab Content */}
@@ -41,6 +42,10 @@ export const ConfigurePage = () => {
                         <TenantManagement />
                     </TabsContent>
                 )}
+
+                <TabsContent value="vendor-questionnaire">
+                    <VendorQuestionnaireManagement />
+                </TabsContent>
             </Tabs>
         </div>
     );

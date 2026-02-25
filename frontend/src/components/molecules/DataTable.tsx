@@ -1,3 +1,4 @@
+import { useState, useRef, useEffect } from 'react';
 import { ChevronDown } from 'lucide-react';
 import {
     Pagination,
@@ -62,33 +63,72 @@ export const DataTable = <T extends { id: string }>({
     const startItem = total ? (currentPage - 1) * pageSize + 1 : 0;
     const endItem = total ? Math.min(currentPage * pageSize, total) : data.length;
 
+    const [colWidths, setColWidths] = useState<Record<string, number>>({});
+    const resizingCol = useRef<string | null>(null);
+    const startX = useRef<number>(0);
+    const startWidth = useRef<number>(0);
+
+    const handleMouseDown = (e: React.MouseEvent, colKey: string) => {
+        e.preventDefault();
+        e.stopPropagation();
+        resizingCol.current = colKey;
+        startX.current = e.pageX;
+
+        const th = (e.target as HTMLElement).closest('th');
+        startWidth.current = th?.getBoundingClientRect().width || 100;
+
+        document.addEventListener('mousemove', handleMouseMove);
+        document.addEventListener('mouseup', handleMouseUp);
+    };
+
+    const handleMouseMove = (e: MouseEvent) => {
+        if (!resizingCol.current) return;
+        const diff = e.pageX - startX.current;
+        const newWidth = Math.max(50, startWidth.current + diff);
+        setColWidths(prev => ({ ...prev, [resizingCol.current as string]: newWidth }));
+    };
+
+    const handleMouseUp = () => {
+        resizingCol.current = null;
+        document.removeEventListener('mousemove', handleMouseMove);
+        document.removeEventListener('mouseup', handleMouseUp);
+    };
+
+    useEffect(() => {
+        return () => {
+            document.removeEventListener('mousemove', handleMouseMove);
+            document.removeEventListener('mouseup', handleMouseUp);
+        };
+    }, []);
+
     return (
         <div className="flex flex-col flex-1 min-h-0">
             {/* Table with internal scroll */}
             <div className="border rounded-lg flex-1 min-h-0 flex flex-col overflow-hidden">
-                {/* Sticky header */}
-                <table className="w-full">
-                    <thead className="bg-muted border-b">
-                        <tr>
-                            {columns.map((col) => (
-                                <th
-                                    key={String(col.key)}
-                                    className="px-4 py-3 text-left text-sm font-semibold text-muted-foreground"
-                                >
-                                    {col.label}
-                                </th>
-                            ))}
-                            {actions && (
-                                <th className="px-4 py-3 text-left text-sm font-semibold text-muted-foreground">
-                                    Actions
-                                </th>
-                            )}
-                        </tr>
-                    </thead>
-                </table>
-
-                <div className="flex-1 overflow-y-auto ">
-                    <table className="w-full">
+                <div className="flex-1 overflow-y-auto">
+                    <table className="w-full" style={{ tableLayout: 'fixed' }}>
+                        <thead className="bg-muted sticky top-0 z-10 shadow-sm">
+                            <tr>
+                                {columns.map((col) => (
+                                    <th
+                                        key={String(col.key)}
+                                        className="relative px-4 py-3 text-left text-sm font-semibold text-muted-foreground border-r border-border hover:bg-muted/80 transition-colors last:border-r-0"
+                                        style={{ width: colWidths[String(col.key)] }}
+                                    >
+                                        <div className="truncate">{col.label}</div>
+                                        <div
+                                            onMouseDown={(e) => handleMouseDown(e, String(col.key))}
+                                            className="absolute right-0 top-0 bottom-0 w-1.5 cursor-col-resize hover:bg-primary/50 transition-colors"
+                                        />
+                                    </th>
+                                ))}
+                                {actions && (
+                                    <th className="px-4 py-3 text-left text-sm font-semibold text-muted-foreground w-24">
+                                        Actions
+                                    </th>
+                                )}
+                            </tr>
+                        </thead>
                         <tbody>
                             {!data || data.length === 0 ? (
                                 <tr>
@@ -125,7 +165,7 @@ export const DataTable = <T extends { id: string }>({
                                         {columns.map((col) => (
                                             <td
                                                 key={String(col.key)}
-                                                className="px-4 py-3 text-sm text-foreground"
+                                                className="px-4 py-3 text-sm text-foreground overflow-hidden text-ellipsis whitespace-nowrap"
                                             >
                                                 {col.render
                                                     ? col.render(row[col.key], row)

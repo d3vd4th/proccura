@@ -1,5 +1,19 @@
 import api from './axios';
 
+export interface VendorQuestionnaireAssignment {
+    id: string;
+    tenant_id: string;
+    pre_registration_id: string;
+    domain: string;
+    status: string;
+    assigned_at: string;
+    completed_at?: string;
+}
+
+export interface VendorQuestionnaireAssignCreate {
+    domains: string[];
+}
+
 export interface VendorPreRegistration {
     id: string;
     invitation_id: string;
@@ -27,6 +41,18 @@ export const preRegistrationsAPI = {
         const { data } = await api.get<PaginatedPreRegistrations>('/api/v1/pre-registrations', {
             params,
         });
+        return data;
+    },
+    getById: async (id: string) => {
+        const { data } = await api.get<VendorPreRegistration>(`/api/v1/pre-registrations/${id}`);
+        return data;
+    },
+    assignQuestionnaires: async (id: string, assignData: VendorQuestionnaireAssignCreate) => {
+        const { data } = await api.post<VendorQuestionnaireAssignment[]>(`/api/v1/pre-registrations/${id}/questionnaires/assign`, assignData);
+        return data;
+    },
+    getAssignedQuestionnaires: async (id: string) => {
+        const { data } = await api.get<VendorQuestionnaireAssignment[]>(`/api/v1/pre-registrations/${id}/questionnaires`);
         return data;
     },
 };

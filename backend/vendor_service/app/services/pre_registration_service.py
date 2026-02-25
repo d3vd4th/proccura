@@ -3,7 +3,9 @@ from typing import Optional
 from fastapi import HTTPException, status
 from app.models.invitation import Invitation
 from app.models.vendor_pre_registration import VendorPreRegistration
+from app.models.vendor_questionnaire_assignment import VendorQuestionnaireAssignment
 from app.schemas.invitation import VendorPreRegistrationCreate
+from app.schemas.vendor_questionnaire import VendorQuestionnaireAssignCreate
 from app.services.invitation_service import InvitationService
 from app.services.email_service import send_pre_registration_notification
 
@@ -107,3 +109,54 @@ class PreRegistrationService:
             "limit": limit,
             "total_pages": total_pages
         }
+
+    @staticmethod
+    def get_pre_registration(db: Session, id: str, tenant_id: str) -> Optional[VendorPreRegistration]:
+        return db.query(VendorPreRegistration).filter(
+            VendorPreRegistration.id == id,
+            VendorPreRegistration.tenant_id == tenant_id
+        ).first()
+
+    @staticmethod
+    def assign_questionnaires(
+        db: Session, 
+        pre_registration_id: str, 
+        assign_data: VendorQuestionnaireAssignCreate, 
+        tenant_id: str
+    ):
+        pre_reg = PreRegistrationService.get_pre_registration(db, pre_registration_id, tenant_id)
+        if not pre_reg:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Pre-registration not found")
+
+        # Delete existing ones
+        db.query(VendorQuestionnaireAssignment).filter(
+            VendorQuestionnaireAssignment.pre_registration_id == pre_registration_id,
+        ).delete()
+
+        # Add new ones
+        new_assignments = []
+        for domain in assign_data.domains:
+            assignment = VendorQuestionnaireAssignment(
+                tenant_id=tenant_id,
+                pre_registration_id=pre_registration_id,
+                domain=domain,
+                status="Pending"
+            )
+            db.add(assignment)
+            new_assignments.append(assignment)
+        
+        db.commit()
+        for a in new_assignments:
+            db.refresh(a)
+            
+        return new_assignments
+
+    @staticmethod
+    def get_assigned_questionnaires(db: Session, pre_registration_id: str, tenant_id: str):
+        pre_reg = PreRegistrationService.get_pre_registration(db, pre_registration_id, tenant_id)
+        if not pre_reg:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Pre-registration not found")
+
+        return db.query(VendorQuestionnaireAssignment).filter(
+            VendorQuestionnaireAssignment.pre_registration_id == pre_registration_id,
+        ).all()

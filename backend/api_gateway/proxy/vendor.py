@@ -57,3 +57,27 @@ async def pre_registrations_root(request: Request):
         settings.VENDOR_SERVICE_URL,
         "/api/v1/pre-registrations"
     )
+
+@router.api_route(
+    "/api/v1/questionnaires/{path:path}",
+    methods=["GET", "POST", "PUT", "DELETE", "PATCH"]
+)
+async def questionnaires_proxy(path: str, request: Request):
+    """Proxy /api/v1/questionnaires/* requests to vendor service"""
+    return await proxy_request(
+        request,
+        settings.VENDOR_SERVICE_URL,
+        f"/api/v1/questionnaires/{path}"
+    )
+
+@router.api_route(
+    "/api/v1/questionnaires",
+    methods=["GET", "POST", "PUT", "DELETE", "PATCH"]
+)
+async def questionnaires_root(request: Request):
+    """Handle requests to /api/v1/questionnaires (no subpath)"""
+    return await proxy_request(
+        request,
+        settings.VENDOR_SERVICE_URL,
+        "/api/v1/questionnaires"
+    )
