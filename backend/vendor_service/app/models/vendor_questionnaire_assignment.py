@@ -11,7 +11,7 @@ class VendorQuestionnaireAssignment(Base):
     tenant_id = Column(UUID(as_uuid=True), nullable=False, index=True)
     
     pre_registration_id = Column(UUID(as_uuid=True), ForeignKey("vendor_pre_registrations.id", ondelete="CASCADE"), nullable=False, index=True)
-    domain = Column(String, nullable=False)
+    questionnaire_id = Column(UUID(as_uuid=True), ForeignKey("questionnaires.id", ondelete="CASCADE"), nullable=False, index=True)
     status = Column(String, default="Pending", nullable=False) # e.g., Pending, In Progress, Completed
     
     assigned_at = Column(DateTime(timezone=True), server_default=func.now())
@@ -19,3 +19,6 @@ class VendorQuestionnaireAssignment(Base):
 
     # Relationship to PreRegistration 
     pre_registration = relationship("VendorPreRegistration", back_populates="questionnaire_assignments")
+    
+    # Relationship to Questionnaire
+    questionnaire = relationship("Questionnaire", back_populates="assignments")

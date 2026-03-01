@@ -135,11 +135,11 @@ class PreRegistrationService:
 
         # Add new ones
         new_assignments = []
-        for domain in assign_data.domains:
+        for q_id in assign_data.questionnaire_ids:
             assignment = VendorQuestionnaireAssignment(
                 tenant_id=tenant_id,
                 pre_registration_id=pre_registration_id,
-                domain=domain,
+                questionnaire_id=q_id,
                 status="Pending"
             )
             db.add(assignment)

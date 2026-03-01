@@ -43,6 +43,11 @@ export const questionnaireApi = {
         return response.data;
     },
 
+    getDomains: async () => {
+        const response = await apiClient.get<string[]>(`${BASE_URL}/domains`);
+        return response.data;
+    },
+
     getById: async (id: string) => {
         const response = await apiClient.get<Questionnaire>(`${BASE_URL}/${id}`);
         return response.data;

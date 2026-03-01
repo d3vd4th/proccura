@@ -24,7 +24,7 @@ def create_questionnaire(
 @router.get("", response_model=PaginatedQuestionnaires)
 def list_questionnaires(
     page: int = Query(1, ge=1),
-    limit: int = Query(10, ge=1, le=100),
+    limit: int = Query(10, ge=1, le=1000),
     search: Optional[str] = None,
     domain: Optional[str] = None,
     tenant_id: str = Depends(get_tenant_id),
@@ -38,6 +38,13 @@ def list_questionnaires(
         search=search,
         domain_filter=domain
     )
+
+@router.get("/domains", response_model=List[str])
+def list_questionnaire_domains(
+    tenant_id: str = Depends(get_tenant_id),
+    db: Session = Depends(get_db)
+):
+    return QuestionnaireService.get_domains(db=db, tenant_id=tenant_id)
 
 @router.get("/{id}", response_model=QuestionnaireOut)
 def get_questionnaire(

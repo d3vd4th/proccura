@@ -66,6 +66,12 @@ class QuestionnaireService:
         }
 
     @staticmethod
+    def get_domains(db: Session, tenant_id: str) -> List[str]:
+        # Helper to retrieve only strings of distinct domains
+        domains = db.query(Questionnaire.domain).filter(Questionnaire.tenant_id == tenant_id).distinct().all()
+        return [d[0] for d in domains]
+
+    @staticmethod
     def get_questionnaire(db: Session, id: str, tenant_id: str) -> Questionnaire:
         obj = db.query(Questionnaire).filter(
             Questionnaire.id == id,

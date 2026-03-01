@@ -5,14 +5,14 @@ from typing import Optional, List
 
 # For requesting an assignment
 class VendorQuestionnaireAssignCreate(BaseModel):
-    domains: List[str]
+    questionnaire_ids: List[UUID]
 
 # For output response
 class VendorQuestionnaireAssignmentOut(BaseModel):
     id: UUID
     tenant_id: UUID
     pre_registration_id: UUID
-    domain: str
+    questionnaire_id: UUID
     status: str
     assigned_at: datetime
     completed_at: Optional[datetime] = None

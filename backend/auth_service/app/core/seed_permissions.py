@@ -9,44 +9,71 @@ FEATURES = [
     ("role", "Role Management", "Manage roles and permissions"),
     ("vendor", "Vendor Management", "Manage vendors and suppliers"),
     ("invitation", "Invitation Management", "Manage vendor invitations"),
+    ("pre_registration", "Pre-Registration Management", "Manage vendor pre-registrations"),
+    ("questionnaire", "Questionnaire Management", "Manage compliance questionnaires"),
     ("po", "Purchase Orders", "Manage purchase orders"),
     ("report", "Reports", "View and export reports"),
     ("ai", "AI Features", "AI-powered insights and features"),
 ]
 
 PERMISSIONS = [
+    # Tenant
     ("tenant.create", "Create tenants", "tenant"),
     ("tenant.update", "Update tenant details", "tenant"),
     ("tenant.read", "View tenant details", "tenant"),
 
+    # User
     ("user.create", "Create users", "user"),
     ("user.update", "Update users", "user"),
     ("user.delete", "Delete users", "user"),
     ("user.deactivate", "Deactivate users", "user"),
     ("user.read", "View users", "user"),
 
+    # Role
     ("role.create", "Create roles", "role"),
     ("role.update", "Update roles", "role"),
     ("role.read", "View roles", "role"),
     ("role.permission.update", "Assign permissions to roles", "role"),
 
+    # Vendor
     ("vendor.create", "Create vendors", "vendor"),
     ("vendor.update", "Update vendors", "vendor"),
     ("vendor.read", "View vendors", "vendor"),
     ("vendor.deactivate", "Deactivate vendors", "vendor"),
 
+    # Invitation
     ("invitation.create", "Create invitations", "invitation"),
     ("invitation.read", "View invitations", "invitation"),
     ("invitation.update", "Update invitations", "invitation"),
     ("invitation.delete", "Delete invitations", "invitation"),
+    ("invitation.resend", "Resend invitations", "invitation"),
 
+    # Pre-Registration
+    ("pre_registration.read", "View pre-registrations", "pre_registration"),
+    ("pre_registration.create", "Create pre-registrations", "pre_registration"),
+    ("pre_registration.update", "Update pre-registrations", "pre_registration"),
+    ("pre_registration.delete", "Delete pre-registrations", "pre_registration"),
+    ("pre_registration.assign_questionnaire", "Assign questionnaires to pre-registrations", "pre_registration"),
+    ("pre_registration.read_questionnaire", "View assigned questionnaires for pre-registrations", "pre_registration"),
+
+    # Questionnaire
+    ("questionnaire.create", "Create questionnaires", "questionnaire"),
+    ("questionnaire.read", "View questionnaires", "questionnaire"),
+    ("questionnaire.update", "Update questionnaires", "questionnaire"),
+    ("questionnaire.delete", "Delete questionnaires", "questionnaire"),
+    ("questionnaire.upload", "Bulk upload questionnaires", "questionnaire"),
+    ("questionnaire.read_domain", "View questionnaire domains", "questionnaire"),
+
+    # Purchase Orders
     ("po.create", "Create purchase orders", "po"),
     ("po.approve", "Approve purchase orders", "po"),
     ("po.read", "View purchase orders", "po"),
 
+    # Reports
     ("report.view", "View reports", "report"),
     ("report.export", "Export reports", "report"),
 
+    # AI
     ("ai.insights.view", "View AI insights", "ai"),
 ]
 

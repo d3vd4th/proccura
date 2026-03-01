@@ -1,12 +1,11 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Loader2, ArrowLeft, Building2, User, Mail, Phone, MapPin, Briefcase, FileText } from 'lucide-react';
+import { Loader2, ArrowLeft, Building2, User, Mail, Phone, MapPin, Briefcase, FileText, CheckCircle2, Circle, ChevronRight, ChevronDown } from 'lucide-react';
 import {
     Card,
     CardContent,
     CardHeader,
     CardTitle,
-    CardDescription,
     Button,
     useToast
 } from '@/components/atoms';
@@ -19,8 +18,9 @@ export const PreRegistrationDetailsPage = () => {
     const { toast } = useToast();
 
     const [vendor, setVendor] = useState<VendorPreRegistration | null>(null);
-    const [availableDomains, setAvailableDomains] = useState<string[]>([]);
-    const [selectedDomains, setSelectedDomains] = useState<string[]>([]);
+    const [groupedQuestionnaires, setGroupedQuestionnaires] = useState<Record<string, any[]>>({});
+    const [selectedQuestionnaireIds, setSelectedQuestionnaireIds] = useState<string[]>([]);
+    const [expandedDomains, setExpandedDomains] = useState<Set<string>>(new Set());
     const [isLoading, setIsLoading] = useState(true);
     const [isSaving, setIsSaving] = useState(false);
 
@@ -31,14 +31,18 @@ export const PreRegistrationDetailsPage = () => {
             const vendorData = await preRegistrationsAPI.getById(id);
             setVendor(vendorData);
 
-            // Fetch available domains (by getting all questionnaires and extracting distinct domains)
+            // Fetch all questionnaires and group by domain
             const questionnairesData = await questionnaireApi.getAll({ limit: 1000 });
-            const domains = Array.from(new Set(questionnairesData.items.map(q => q.domain)));
-            setAvailableDomains(domains);
+            const grouped: Record<string, any[]> = {};
+            questionnairesData.items.forEach(q => {
+                if (!grouped[q.domain]) grouped[q.domain] = [];
+                grouped[q.domain].push(q);
+            });
+            setGroupedQuestionnaires(grouped);
 
-            // Fetch assigned domains
+            // Fetch assigned questionnaire IDs
             const assignedData = await preRegistrationsAPI.getAssignedQuestionnaires(id);
-            setSelectedDomains(assignedData.map(a => a.domain));
+            setSelectedQuestionnaireIds(assignedData.map(a => a.questionnaire_id));
         } catch (error) {
             console.error('Failed to fetch details:', error);
             toast.error('Failed to load vendor details');
@@ -51,11 +55,21 @@ export const PreRegistrationDetailsPage = () => {
         fetchDetails();
     }, []);
 
-    const handleDomainToggle = (domain: string) => {
-        setSelectedDomains(prev =>
-            prev.includes(domain)
-                ? prev.filter(d => d !== domain)
-                : [...prev, domain]
+    const handleQuestionnaireToggle = (qId: string) => {
+        setSelectedQuestionnaireIds(prev =>
+            prev.includes(qId)
+                ? prev.filter(id => id !== qId)
+                : [...prev, qId]
+        );
+    };
+
+    const handleDomainToggle = (domainQuestions: any[]) => {
+        const domainIds = domainQuestions.map(q => q.id);
+        const allSelected = domainIds.every(id => selectedQuestionnaireIds.includes(id));
+        setSelectedQuestionnaireIds(prev =>
+            allSelected
+                ? prev.filter(id => !domainIds.includes(id))
+                : [...new Set([...prev, ...domainIds])]
         );
     };
 
@@ -63,7 +77,7 @@ export const PreRegistrationDetailsPage = () => {
         if (!id) return;
         try {
             setIsSaving(true);
-            await preRegistrationsAPI.assignQuestionnaires(id, { domains: selectedDomains });
+            await preRegistrationsAPI.assignQuestionnaires(id, { questionnaire_ids: selectedQuestionnaireIds });
             toast.success('Questionnaires assigned successfully');
             fetchDetails(); // Refetch to get updated status
         } catch (error) {
@@ -93,112 +107,216 @@ export const PreRegistrationDetailsPage = () => {
         );
     }
 
+    const totalQuestions = Object.values(groupedQuestionnaires).reduce((sum, qs) => sum + qs.length, 0);
+
     return (
-        <div className="flex flex-col h-full space-y-6 max-w-5xl mx-auto w-full">
-            <div className="flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                    <Button variant="ghost" size="icon" onClick={() => navigate('/pre-registrations')}>
+        <div className="flex flex-col space-y-6 max-w-6xl mx-auto w-full pb-10">
+            {/* Header / Banner */}
+            <div className="relative rounded-2xl bg-linear-to-r from-indigo-100 via-blue-50 to-sky-50 dark:from-primary/15 dark:via-primary/5 dark:to-transparent border border-indigo-200/60 dark:border-border overflow-hidden p-6 md:p-8">
+                <div className="absolute top-0 right-0 p-12 opacity-[0.07] pointer-events-none">
+                    <Building2 className="w-64 h-64 text-indigo-500" />
+                </div>
+
+                <div className="flex items-center gap-5 relative z-10">
+                    <Button variant="outline" size="icon" className="rounded-full bg-white/80 dark:bg-background/50 backdrop-blur shrink-0 border-indigo-200/60 dark:border-border" onClick={() => navigate('/pre-registrations')}>
                         <ArrowLeft className="h-5 w-5" />
                     </Button>
-                    <div>
-                        <h1 className="text-2xl font-bold tracking-tight">{vendor.business_name}</h1>
-                        <p className="text-muted-foreground">Pre-Registration Details & Questionnaire Assignment</p>
+                    <div className="h-14 w-14 bg-linear-to-br from-indigo-500 to-blue-600 text-white rounded-2xl flex items-center justify-center text-xl font-bold shadow-md shrink-0">
+                        {vendor.business_name.charAt(0).toUpperCase()}
+                    </div>
+                    <div className="min-w-0">
+                        <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-foreground truncate">{vendor.business_name}</h1>
+                        <div className="flex items-center gap-2 mt-0.5 text-sm text-muted-foreground">
+                            <MapPin className="h-3.5 w-3.5 shrink-0 text-indigo-400" />
+                            <span className="truncate">{vendor.city}, {vendor.country}</span>
+                            <span className="text-muted-foreground/30">•</span>
+                            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wider bg-emerald-100 text-emerald-700 border border-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-400 dark:border-emerald-800/30">
+                                Pre-Registered
+                            </span>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                {/* Vendor Details Form/Card */}
-                <Card className="md:col-span-2">
-                    <CardHeader>
-                        <CardTitle className="flex items-center gap-2">
-                            <Building2 className="h-5 w-5 text-primary" />
+            <div className="grid gap-6">
+                {/* Vendor Details */}
+                <Card className="shadow-sm border-border/50">
+                    <CardHeader className="dark:bg-muted/30 border-b py-4 px-6">
+                        <CardTitle className="flex items-center gap-2.5 text-base">
+                            <div className="h-7 w-7 rounded-lg bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
+                                <User className="h-3.5 w-3.5 text-blue-600 dark:text-blue-400" />
+                            </div>
                             Business Information
                         </CardTitle>
                     </CardHeader>
-                    <CardContent className="space-y-6">
-                        <div className="grid grid-cols-2 gap-4">
-                            <div className="space-y-1">
-                                <p className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                                    <User className="h-4 w-4" /> Contact Person
+                    <CardContent className="p-6">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+                            <div className="space-y-1.5 p-3 rounded-lg bg-slate-50/80 dark:bg-muted/20 border border-slate-100 dark:border-border/30">
+                                <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-400 dark:text-muted-foreground flex items-center gap-1.5">
+                                    <User className="h-3 w-3 text-violet-400" /> Contact Person
                                 </p>
-                                <p className="font-medium">{vendor.contact_person}</p>
+                                <p className="text-sm font-medium text-foreground">{vendor.contact_person}</p>
                             </div>
-                            <div className="space-y-1">
-                                <p className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                                    <Mail className="h-4 w-4" /> Email
+                            <div className="space-y-1.5 p-3 rounded-lg bg-slate-50/80 dark:bg-muted/20 border border-slate-100 dark:border-border/30">
+                                <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-400 dark:text-muted-foreground flex items-center gap-1.5">
+                                    <Mail className="h-3 w-3 text-blue-400" /> Email
                                 </p>
-                                <p className="font-medium">{vendor.email}</p>
+                                <p className="text-sm font-medium text-foreground">{vendor.email}</p>
                             </div>
-                            <div className="space-y-1">
-                                <p className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                                    <Phone className="h-4 w-4" /> Phone
+                            <div className="space-y-1.5 p-3 rounded-lg bg-slate-50/80 dark:bg-muted/20 border border-slate-100 dark:border-border/30">
+                                <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-400 dark:text-muted-foreground flex items-center gap-1.5">
+                                    <Phone className="h-3 w-3 text-emerald-400" /> Phone
                                 </p>
-                                <p className="font-medium">{vendor.phone}</p>
+                                <p className="text-sm font-medium text-foreground">{vendor.phone}</p>
                             </div>
-                            <div className="space-y-1">
-                                <p className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                                    <Briefcase className="h-4 w-4" /> Business Type
+                            <div className="space-y-1.5 p-3 rounded-lg bg-slate-50/80 dark:bg-muted/20 border border-slate-100 dark:border-border/30">
+                                <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-400 dark:text-muted-foreground flex items-center gap-1.5">
+                                    <MapPin className="h-3 w-3 text-rose-400" /> Location
                                 </p>
-                                <p className="font-medium">{vendor.business_type || 'N/A'}</p>
+                                <p className="text-sm font-medium text-foreground">{vendor.city}, {vendor.state} — {vendor.country}</p>
                             </div>
-                        </div>
-
-                        <div className="space-y-1 pt-4 border-t">
-                            <p className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                                <MapPin className="h-4 w-4" /> Location
-                            </p>
-                            <p className="font-medium">
-                                {vendor.city}, {vendor.state}, {vendor.country}
-                            </p>
+                            <div className="space-y-1.5 p-3 rounded-lg bg-slate-50/80 dark:bg-muted/20 border border-slate-100 dark:border-border/30">
+                                <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-400 dark:text-muted-foreground flex items-center gap-1.5">
+                                    <Briefcase className="h-3 w-3 text-amber-400" /> Business Type
+                                </p>
+                                {vendor.business_type ? (
+                                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300">
+                                        {vendor.business_type}
+                                    </span>
+                                ) : (
+                                    <p className="text-sm text-muted-foreground italic">Not specified</p>
+                                )}
+                            </div>
                         </div>
                     </CardContent>
                 </Card>
 
-                {/* Questionnaire Assignment Panel */}
-                <Card>
-                    <CardHeader>
-                        <CardTitle className="flex items-center gap-2">
-                            <FileText className="h-5 w-5 text-primary" />
-                            Assign Questionnaires
-                        </CardTitle>
-                        <CardDescription>
-                            Select domains to assign to this vendor.
-                        </CardDescription>
+                {/* Questionnaire Assignment */}
+                <Card className="shadow-sm border-border/50">
+                    <CardHeader className="dark:bg-primary/5 border-b py-4 px-6">
+                        <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                                <CardTitle className="flex items-center gap-2.5 text-base">
+                                    <div className="h-7 w-7 rounded-lg bg-violet-100 dark:bg-violet-900/30 flex items-center justify-center">
+                                        <FileText className="h-3.5 w-3.5 text-violet-600 dark:text-violet-400" />
+                                    </div>
+                                    Assign Questionnaires
+                                </CardTitle>
+                                {totalQuestions > 0 && (
+                                    <span className="text-xs text-muted-foreground">
+                                        {selectedQuestionnaireIds.length} of {totalQuestions} selected
+                                    </span>
+                                )}
+                            </div>
+                            <Button
+                                size="sm"
+                                onClick={handleSaveAssignments}
+                                disabled={isSaving || totalQuestions === 0}
+                            >
+                                {isSaving ? (
+                                    <Loader2 className="mr-1.5 h-4 w-4 animate-spin" />
+                                ) : (
+                                    <CheckCircle2 className="mr-1.5 h-4 w-4" />
+                                )}
+                                {isSaving ? 'Saving...' : 'Save'}
+                            </Button>
+                        </div>
                     </CardHeader>
-                    <CardContent className="space-y-6">
-                        {availableDomains.length === 0 ? (
-                            <p className="text-sm text-muted-foreground italic">No questionnaires available to assign.</p>
+                    <CardContent className="p-0">
+                        {totalQuestions === 0 ? (
+                            <div className="flex flex-col items-center justify-center py-16 text-center text-muted-foreground">
+                                <FileText className="h-8 w-8 opacity-20 mb-2" />
+                                <p className="text-sm">No questionnaires available to assign.</p>
+                            </div>
                         ) : (
-                            <div className="space-y-3">
-                                {availableDomains.map(domain => {
-                                    const isSelected = selectedDomains.includes(domain);
+                            <div className="divide-y divide-border/50">
+                                {Object.entries(groupedQuestionnaires).map(([domain, questions]) => {
+                                    const domainSelectedCount = questions.filter(q => selectedQuestionnaireIds.includes(q.id)).length;
                                     return (
-                                        <div
-                                            key={domain}
-                                            className={`flex items-center justify-between p-3 rounded-lg border cursor-pointer transition-colors ${isSelected ? 'bg-primary/5 border-primary' : 'bg-background hover:bg-muted'}`}
-                                            onClick={() => handleDomainToggle(domain)}
-                                        >
-                                            <span className="font-medium select-none">{domain}</span>
-                                            {isSelected && (
-                                                <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-primary text-primary-foreground">
-                                                    Assigned
-                                                </span>
+                                        <div key={domain} className="px-6 py-4">
+                                            <div
+                                                className="flex items-center justify-between cursor-pointer select-none"
+                                                onClick={() => setExpandedDomains(prev => {
+                                                    const next = new Set(prev);
+                                                    next.has(domain) ? next.delete(domain) : next.add(domain);
+                                                    return next;
+                                                })}
+                                            >
+                                                <h3 className="font-semibold text-sm text-foreground flex items-center gap-2">
+                                                    {expandedDomains.has(domain) ? (
+                                                        <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                                                    ) : (
+                                                        <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                                                    )}
+                                                    {domain}
+                                                    <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-muted text-muted-foreground">
+                                                        {questions.length}
+                                                    </span>
+                                                </h3>
+                                                <div className="flex items-center gap-2">
+                                                    {domainSelectedCount > 0 && (
+                                                        <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-primary/10 text-primary">
+                                                            {domainSelectedCount} selected
+                                                        </span>
+                                                    )}
+                                                    <button
+                                                        type="button"
+                                                        className="text-xs text-primary hover:text-primary/80 font-medium cursor-pointer transition-colors"
+                                                        onClick={(e) => { e.stopPropagation(); handleDomainToggle(questions); }}
+                                                    >
+                                                        {domainSelectedCount === questions.length ? 'Deselect all' : 'Select all'}
+                                                    </button>
+                                                </div>
+                                            </div>
+                                            {expandedDomains.has(domain) && (
+                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-4">
+                                                    {questions.map((q) => {
+                                                        const isSelected = selectedQuestionnaireIds.includes(q.id);
+                                                        return (
+                                                            <div
+                                                                key={q.id}
+                                                                className={`group flex items-start gap-3 p-3 rounded-lg border cursor-pointer transition-all duration-150 ${isSelected
+                                                                    ? 'bg-primary/5 border-primary/40'
+                                                                    : 'bg-background hover:bg-muted/50 border-border/60 hover:border-border'
+                                                                    }`}
+                                                                onClick={() => handleQuestionnaireToggle(q.id)}
+                                                            >
+                                                                <div className="pt-0.5 shrink-0">
+                                                                    {isSelected ? (
+                                                                        <CheckCircle2 className="h-4.5 w-4.5 text-primary" />
+                                                                    ) : (
+                                                                        <Circle className="h-4.5 w-4.5 text-muted-foreground/40 group-hover:text-muted-foreground/60" />
+                                                                    )}
+                                                                </div>
+                                                                <div className="flex flex-col gap-1 min-w-0">
+                                                                    <span className={`text-sm leading-snug transition-colors ${isSelected ? 'text-foreground font-medium' : 'text-foreground/70 group-hover:text-foreground'
+                                                                        }`}>
+                                                                        {q.question}
+                                                                    </span>
+                                                                    <div className="flex items-center gap-2">
+                                                                        <span className="text-[10px] text-muted-foreground capitalize">
+                                                                            {q.type.replace('_', ' ')}
+                                                                        </span>
+                                                                        {q.attachment_required && (
+                                                                            <>
+                                                                                <span className="text-muted-foreground/30">•</span>
+                                                                                <span className="text-[10px] text-amber-600 dark:text-amber-400 font-medium">
+                                                                                    Attachment
+                                                                                </span>
+                                                                            </>
+                                                                        )}
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        );
+                                                    })}
+                                                </div>
                                             )}
                                         </div>
                                     );
                                 })}
                             </div>
                         )}
-
-                        <Button
-                            className="w-full"
-                            onClick={handleSaveAssignments}
-                            disabled={isSaving || availableDomains.length === 0}
-                        >
-                            {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                            Save Assignments
-                        </Button>
                     </CardContent>
                 </Card>
             </div>

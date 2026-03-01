@@ -8,7 +8,6 @@ from config import settings
 
 logger = logging.getLogger(__name__)
 
-# Redis connection pool (initialized on first use)
 _redis_pool: Optional[redis.Redis] = None
 
 
@@ -64,36 +63,29 @@ async def has_permission(role_id: str, permission: str) -> bool:
     try:
         redis_client = await get_redis()
         
-        # Check if permission exists in the cached set
         exists = await redis_client.sismember(cache_key, permission)
         
         if exists:
             return True
         
-        # Check if the set exists at all (cache miss vs permission not in set)
         set_exists = await redis_client.exists(cache_key)
         
         if set_exists:
-            # Set exists but permission is not in it
             return False
         
-        # Cache miss - fetch from Auth Service
         logger.info(f"Cache miss for role {role_id}, fetching from auth service")
         permissions = await get_role_permissions_from_auth(role_id)
         
         if permissions:
-            # Store in Redis as a SET
             await redis_client.sadd(cache_key, *permissions)
             await redis_client.expire(cache_key, settings.PERMISSION_CACHE_TTL)
             
-            # Check if the requested permission is in the list
             return permission in permissions
         
         return False
         
     except redis.RedisError as e:
         logger.error(f"Redis error: {e}, falling back to auth service")
-        # Fallback to direct auth service call
         permissions = await get_role_permissions_from_auth(role_id)
         return permission in permissions
 

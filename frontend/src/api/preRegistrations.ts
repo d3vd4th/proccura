@@ -4,14 +4,14 @@ export interface VendorQuestionnaireAssignment {
     id: string;
     tenant_id: string;
     pre_registration_id: string;
-    domain: string;
+    questionnaire_id: string;
     status: string;
     assigned_at: string;
     completed_at?: string;
 }
 
 export interface VendorQuestionnaireAssignCreate {
-    domains: string[];
+    questionnaire_ids: string[];
 }
 
 export interface VendorPreRegistration {
