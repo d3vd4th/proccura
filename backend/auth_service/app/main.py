@@ -39,7 +39,6 @@ def root():
 
 @app.get("/ready")
 def readiness_check():
-    """Readiness check - ensures DB connection"""
     try:
         from core.database import SessionLocal
         db = SessionLocal()
