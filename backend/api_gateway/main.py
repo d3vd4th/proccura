@@ -59,6 +59,15 @@ def health_check():
     }
 
 
+@app.post("/internal/cache/invalidate-role/{role_id}")
+async def invalidate_role_cache_endpoint(role_id: str):
+    """Internal endpoint to invalidate a role's permission cache in Redis.
+    Called by the auth service when role permissions are updated."""
+    from services.permission_service import invalidate_role_cache
+    await invalidate_role_cache(role_id)
+    return {"status": "ok", "role_id": role_id}
+
+
 @app.on_event("startup")
 async def startup_event():
     logger.info("🚀 Starting Proccura API Gateway")

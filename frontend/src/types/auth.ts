@@ -2,9 +2,16 @@ export interface User {
   id: string;
   email: string;
   name?: string;
+  first_name?: string;
+  last_name?: string;
+  phone?: string;
   role?: string;
+  role_id?: string;
+  role_name?: string;
+  is_active?: boolean;
   is_super_admin?: boolean;
   tenant_id?: string;
+  profile_pic_url?: string;
   permissions?: string[];
 }
 

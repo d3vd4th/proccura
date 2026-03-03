@@ -126,6 +126,7 @@ def get_current_user_info(
     from app.models.tenant_user import TenantUser
     from app.models.role_permission import RolePermission
     from app.models.permission import Permission
+    from app.models.role import Role
 
     # Get tenant_user for the user
     tenant_user = (
@@ -134,9 +135,13 @@ def get_current_user_info(
         .first()
     )
 
-    # Get user permissions based on their role
+    # Get role name and permissions
+    role_name = None
     permissions = []
     if tenant_user and tenant_user.role_id:
+        role = db.query(Role).filter(Role.id == tenant_user.role_id).first()
+        role_name = role.name if role else None
+
         permission_codes = (
             db.query(Permission.code)
             .join(RolePermission, RolePermission.permission_id == Permission.id)
@@ -155,6 +160,7 @@ def get_current_user_info(
         "profile_pic_url": current_user.profile_pic_url,
         "tenant_id": tenant_user.tenant_id if tenant_user else None,
         "role_id": tenant_user.role_id if tenant_user else None,
+        "role_name": role_name,
         "permissions": permissions,
     }
 

@@ -15,3 +15,4 @@ export { InvitationsPage } from './InvitationsPage'
 export { PreRegistrationPage } from './PreRegistrationPage'
 export { PreRegistrationsPage } from './PreRegistrationsPage';
 export { PreRegistrationDetailsPage } from './PreRegistrationDetailsPage';
+export { ProfilePage } from './ProfilePage';

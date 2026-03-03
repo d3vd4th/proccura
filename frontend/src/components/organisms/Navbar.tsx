@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import { Menu, Bell, LogOut, User, Settings } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { Menu, Bell, LogOut, User } from 'lucide-react';
 import { Button, ThemeToggle } from '@/components/atoms';
 import { SearchField, TenantSwitcher } from '@/components/molecules';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
@@ -24,6 +25,7 @@ interface Tenant {
 
 export const Navbar = ({ onMenuClick }: NavbarProps) => {
     const dispatch = useAppDispatch();
+    const navigate = useNavigate();
     const { user } = useAppSelector((state) => state.auth);
     const [currentTenant, setCurrentTenant] = useState<Tenant | null>(null);
     const isSuperAdmin = user?.is_super_admin === true;
@@ -107,7 +109,7 @@ export const Navbar = ({ onMenuClick }: NavbarProps) => {
                     <DropdownMenuContent align="end" className="w-56">
                         <DropdownMenuLabel>My Account</DropdownMenuLabel>
                         <DropdownMenuSeparator />
-                        <DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => navigate('/profile')}>
                             <User className="mr-2 h-4 w-4" />
                             <span>Profile</span>
                         </DropdownMenuItem>

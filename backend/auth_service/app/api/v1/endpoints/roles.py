@@ -103,3 +103,14 @@ def update_role_permissions_api(
         )
 
     replace_role_permissions(db, role.id, payload.permission_ids)
+
+    # Invalidate the gateway's Redis cache for this role
+    import httpx
+    from app.core.config import settings
+    try:
+        httpx.post(
+            f"{settings.API_GATEWAY_URL}/internal/cache/invalidate-role/{role.id}",
+            timeout=3.0,
+        )
+    except Exception:
+        pass  # Best-effort — don't fail the request if gateway is unreachable

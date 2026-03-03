@@ -21,6 +21,7 @@ import {
     PreRegistrationPage,
     PreRegistrationsPage,
     PreRegistrationDetailsPage,
+    ProfilePage,
 } from '@/components';
 
 
@@ -87,6 +88,7 @@ function App() {
                             <Route path="/invitations" element={<InvitationsPage />} />
                             <Route path="/pre-registrations" element={<PreRegistrationsPage />} />
                             <Route path="/pre-registrations/:id" element={<PreRegistrationDetailsPage />} />
+                            <Route path="/profile" element={<ProfilePage />} />
                         </Route>
 
                         <Route path="/" element={<Navigate to="/login" replace />} />
