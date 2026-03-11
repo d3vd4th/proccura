@@ -2,34 +2,34 @@ from sqlalchemy.orm import Session
 from typing import Optional
 from fastapi import HTTPException, status
 from app.models.invitation import Invitation
-from app.models.vendor_pre_registration import VendorPreRegistration
+from app.models.vendor_registration import VendorRegistration, RegistrationStatus
 from app.models.vendor_questionnaire_assignment import VendorQuestionnaireAssignment
-from app.schemas.invitation import VendorPreRegistrationCreate
+from app.schemas.invitation import VendorRegistrationCreate
 from app.schemas.vendor_questionnaire import VendorQuestionnaireAssignCreate
 from app.services.invitation_service import InvitationService
-from app.services.email_service import send_pre_registration_notification
+from app.services.email_service import send_registration_notification
 
 
-class PreRegistrationService:
+class VendorRegistrationService:
     @staticmethod
     def verify_token(db: Session, token: str) -> Invitation:
         """Verify an invitation token and return the invitation."""
         return InvitationService.verify_invitation_token(db, token)
 
     @staticmethod
-    def submit_pre_registration(
+    def submit_registration(
         db: Session,
         token: str,
-        registration_data: VendorPreRegistrationCreate,
-    ) -> VendorPreRegistration:
-        """Submit vendor pre-registration using an invitation token."""
+        registration_data: VendorRegistrationCreate,
+    ) -> VendorRegistration:
+        """Submit vendor registration using an invitation token."""
 
         # Verify the token first
         invitation = InvitationService.verify_invitation_token(db, token)
 
         # Check if already registered with this invitation
-        existing = db.query(VendorPreRegistration).filter(
-            VendorPreRegistration.invitation_id == invitation.id
+        existing = db.query(VendorRegistration).filter(
+            VendorRegistration.invitation_id == invitation.id
         ).first()
 
         if existing:
@@ -38,12 +38,13 @@ class PreRegistrationService:
                 detail="Registration has already been submitted for this invitation"
             )
 
-        # Create pre-registration record
-        pre_registration = VendorPreRegistration(
+        # Create registration record
+        registration = VendorRegistration(
             invitation_id=invitation.id,
             tenant_id=invitation.tenant_id,
             business_name=registration_data.business_name,
             contact_person=registration_data.contact_person,
+            contact_person_email=registration_data.contact_person_email,
             email=registration_data.email,
             phone=registration_data.phone,
             address_line1=registration_data.address_line1,
@@ -58,49 +59,36 @@ class PreRegistrationService:
             products_services=registration_data.products_services,
         )
 
-        db.add(pre_registration)
+        db.add(registration)
 
         # Update invitation status
-        invitation.status = "PRE_REGISTERED"
+        invitation.status = "REGISTERED"
 
         db.commit()
-        db.refresh(pre_registration)
-        
-        
-        # Send notification to the inviter
-        # FIXME: Notification disabled as created_by_email was removed by request.
-        # Need to fetch user email using invitation.created_by (UUID) from Auth Service to re-enable.
-        '''
-        if invitation.created_by_email:
-            send_pre_registration_notification(
-                to_email=invitation.created_by_email,
-                vendor_name=pre_registration.contact_person,
-                business_name=pre_registration.business_name,
-            )
-        '''
+        db.refresh(registration)
 
-        return pre_registration
+        return registration
 
     @staticmethod
-    def get_pre_registrations(
+    def get_registrations(
         db: Session,
         tenant_id: str,
         page: int = 1,
         limit: int = 10,
         search: Optional[str] = None
     ) -> dict:
-        query = db.query(VendorPreRegistration).filter(VendorPreRegistration.tenant_id == tenant_id)
+        query = db.query(VendorRegistration).filter(VendorRegistration.tenant_id == tenant_id)
 
         if search:
             query = query.filter(
-                (VendorPreRegistration.business_name.ilike(f"%{search}%")) |
-                (VendorPreRegistration.email.ilike(f"%{search}%"))
+                (VendorRegistration.business_name.ilike(f"%{search}%")) |
+                (VendorRegistration.email.ilike(f"%{search}%"))
             )
 
         total = query.count()
         total_pages = (total + limit - 1) // limit
 
-        items = query.order_by(VendorPreRegistration.created_at.desc()).offset((page - 1) * limit).limit(limit).all()
+        items = query.order_by(VendorRegistration.created_at.desc()).offset((page - 1) * limit).limit(limit).all()
 
         return {
             "items": items,
@@ -111,26 +99,26 @@ class PreRegistrationService:
         }
 
     @staticmethod
-    def get_pre_registration(db: Session, id: str, tenant_id: str) -> Optional[VendorPreRegistration]:
-        return db.query(VendorPreRegistration).filter(
-            VendorPreRegistration.id == id,
-            VendorPreRegistration.tenant_id == tenant_id
+    def get_registration(db: Session, id: str, tenant_id: str) -> Optional[VendorRegistration]:
+        return db.query(VendorRegistration).filter(
+            VendorRegistration.id == id,
+            VendorRegistration.tenant_id == tenant_id
         ).first()
 
     @staticmethod
     def assign_questionnaires(
         db: Session, 
-        pre_registration_id: str, 
+        registration_id: str, 
         assign_data: VendorQuestionnaireAssignCreate, 
         tenant_id: str
     ):
-        pre_reg = PreRegistrationService.get_pre_registration(db, pre_registration_id, tenant_id)
-        if not pre_reg:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Pre-registration not found")
+        reg = VendorRegistrationService.get_registration(db, registration_id, tenant_id)
+        if not reg:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Vendor registration not found")
 
         # Delete existing ones
         db.query(VendorQuestionnaireAssignment).filter(
-            VendorQuestionnaireAssignment.pre_registration_id == pre_registration_id,
+            VendorQuestionnaireAssignment.pre_registration_id == registration_id,
         ).delete()
 
         # Add new ones
@@ -138,7 +126,7 @@ class PreRegistrationService:
         for q_id in assign_data.questionnaire_ids:
             assignment = VendorQuestionnaireAssignment(
                 tenant_id=tenant_id,
-                pre_registration_id=pre_registration_id,
+                pre_registration_id=registration_id,
                 questionnaire_id=q_id,
                 status="Pending"
             )
@@ -148,15 +136,19 @@ class PreRegistrationService:
         db.commit()
         for a in new_assignments:
             db.refresh(a)
-            
+
+        # Update registration status
+        reg.status = RegistrationStatus.QUESTIONNAIRES_ASSIGNED
+        db.commit()
+
         return new_assignments
 
     @staticmethod
-    def get_assigned_questionnaires(db: Session, pre_registration_id: str, tenant_id: str):
-        pre_reg = PreRegistrationService.get_pre_registration(db, pre_registration_id, tenant_id)
-        if not pre_reg:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Pre-registration not found")
+    def get_assigned_questionnaires(db: Session, registration_id: str, tenant_id: str):
+        reg = VendorRegistrationService.get_registration(db, registration_id, tenant_id)
+        if not reg:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Vendor registration not found")
 
         return db.query(VendorQuestionnaireAssignment).filter(
-            VendorQuestionnaireAssignment.pre_registration_id == pre_registration_id,
+            VendorQuestionnaireAssignment.pre_registration_id == registration_id,
         ).all()

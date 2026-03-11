@@ -9,7 +9,7 @@ FEATURES = [
     ("role", "Role Management", "Manage roles and permissions"),
     ("vendor", "Vendor Management", "Manage vendors and suppliers"),
     ("invitation", "Invitation Management", "Manage vendor invitations"),
-    ("pre_registration", "Pre-Registration Management", "Manage vendor pre-registrations"),
+    ("vendor_registration", "Vendor Registration Management", "Manage vendor registrations"),
     ("questionnaire", "Questionnaire Management", "Manage compliance questionnaires"),
     ("po", "Purchase Orders", "Manage purchase orders"),
     ("report", "Reports", "View and export reports"),
@@ -48,13 +48,13 @@ PERMISSIONS = [
     ("invitation.delete", "Delete invitations", "invitation"),
     ("invitation.resend", "Resend invitations", "invitation"),
 
-    # Pre-Registration
-    ("pre_registration.read", "View pre-registrations", "pre_registration"),
-    ("pre_registration.create", "Create pre-registrations", "pre_registration"),
-    ("pre_registration.update", "Update pre-registrations", "pre_registration"),
-    ("pre_registration.delete", "Delete pre-registrations", "pre_registration"),
-    ("pre_registration.assign_questionnaire", "Assign questionnaires to pre-registrations", "pre_registration"),
-    ("pre_registration.read_questionnaire", "View assigned questionnaires for pre-registrations", "pre_registration"),
+    # Vendor Registration
+    ("vendor_registration.read", "View vendor registrations", "vendor_registration"),
+    ("vendor_registration.create", "Create vendor registrations", "vendor_registration"),
+    ("vendor_registration.update", "Update vendor registrations", "vendor_registration"),
+    ("vendor_registration.delete", "Delete vendor registrations", "vendor_registration"),
+    ("vendor_registration.assign_questionnaire", "Assign questionnaires to vendor registrations", "vendor_registration"),
+    ("vendor_registration.read_questionnaire", "View assigned questionnaires for vendor registrations", "vendor_registration"),
 
     # Questionnaire
     ("questionnaire.create", "Create questionnaires", "questionnaire"),

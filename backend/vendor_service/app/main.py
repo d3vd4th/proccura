@@ -5,12 +5,12 @@ from app.core.database import Base, engine
 from app.api.v1.endpoints import (
     invitations,
     registration,
-    pre_registrations,
+    vendor_registrations,
     questionnaires
 )
 # Import all models so Base.metadata.create_all picks them up
 from app.models.invitation import Invitation  # noqa: F401
-from app.models.vendor_pre_registration import VendorPreRegistration  # noqa: F401
+from app.models.vendor_registration import VendorRegistration  # noqa: F401
 from app.models.questionnaire import Questionnaire  # noqa: F401
 from app.models.vendor_questionnaire_assignment import VendorQuestionnaireAssignment  # noqa: F401
 
@@ -28,7 +28,7 @@ app.add_middleware(
 )
 
 app.include_router(invitations.router, prefix="/api/v1/invitations", tags=["Invitations"])
-app.include_router(pre_registrations.router, prefix="/api/v1/pre-registrations", tags=["PreRegistrations"])
+app.include_router(vendor_registrations.router, prefix="/api/v1/vendor-registrations", tags=["VendorRegistrations"])
 app.include_router(registration.router, prefix="/api/v1/register", tags=["Registration (Public)"])
 app.include_router(questionnaires.router, prefix="/api/v1/questionnaires", tags=["Questionnaires"])
 

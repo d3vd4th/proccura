@@ -26,6 +26,7 @@ export const PreRegistrationPage = () => {
     const [formData, setFormData] = useState<PreRegistrationData>({
         business_name: '',
         contact_person: '',
+        contact_person_email: '',
         email: '',
         phone: '',
         address_line1: '',
@@ -238,6 +239,16 @@ export const PreRegistrationPage = () => {
                                             value={formData.contact_person}
                                             onChange={(e) => updateField('contact_person', e.target.value)}
                                             required
+                                        />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <Label htmlFor="contact_person_email">Contact Person Email</Label>
+                                        <Input
+                                            id="contact_person_email"
+                                            type="email"
+                                            placeholder="contact@company.com"
+                                            value={formData.contact_person_email || ''}
+                                            onChange={(e) => updateField('contact_person_email', e.target.value)}
                                         />
                                     </div>
                                     <div className="grid grid-cols-2 gap-4">

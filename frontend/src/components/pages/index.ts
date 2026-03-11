@@ -13,6 +13,6 @@ export { QueriesPage } from './QueriesPage'
 export { ReportsPage } from './ReportsPage'
 export { InvitationsPage } from './InvitationsPage'
 export { PreRegistrationPage } from './PreRegistrationPage'
-export { PreRegistrationsPage } from './PreRegistrationsPage';
-export { PreRegistrationDetailsPage } from './PreRegistrationDetailsPage';
+export { VendorRegistrationsPage } from './VendorRegistrationsPage';
+export { VendorRegistrationDetailsPage } from './VendorRegistrationDetailsPage';
 export { ProfilePage } from './ProfilePage';

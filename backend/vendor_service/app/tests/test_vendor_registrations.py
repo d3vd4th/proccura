@@ -1,12 +1,12 @@
 import pytest
 from unittest.mock import MagicMock, patch
-from app.services.pre_registration_service import PreRegistrationService
-from app.schemas.invitation import VendorPreRegistrationCreate
+from app.services.vendor_registration_service import VendorRegistrationService
+from app.schemas.invitation import VendorRegistrationCreate
 from app.models.invitation import Invitation
-from app.models.vendor_pre_registration import VendorPreRegistration
+from app.models.vendor_registration import VendorRegistration
 import uuid
 
-def test_submit_pre_registration_success():
+def test_submit_registration_success():
     # Arrange
     db = MagicMock()
     token = "valid_token"
@@ -20,7 +20,7 @@ def test_submit_pre_registration_success():
         status="PENDING"
     )
     
-    registration_data = VendorPreRegistrationCreate(
+    registration_data = VendorRegistrationCreate(
         business_name="Vendor Corp",
         contact_person="John Doe",
         email="vendor@example.com",
@@ -40,7 +40,7 @@ def test_submit_pre_registration_success():
         mock_verify.return_value = mock_invitation
         
         # Act
-        result = PreRegistrationService.submit_pre_registration(
+        result = VendorRegistrationService.submit_registration(
             db=db,
             token=token,
             registration_data=registration_data
@@ -49,12 +49,12 @@ def test_submit_pre_registration_success():
         # Assert
         assert result.business_name == "Vendor Corp"
         assert result.invitation_id == invitation_id
-        assert mock_invitation.status == "PRE_REGISTERED"
+        assert mock_invitation.status == "REGISTERED"
         
         db.add.assert_called_once()
         db.commit.assert_called_once()
 
-def test_submit_pre_registration_already_exists():
+def test_submit_registration_already_exists():
     # Arrange
     db = MagicMock()
     token = "valid_token"
@@ -62,7 +62,7 @@ def test_submit_pre_registration_already_exists():
     
     mock_invitation = Invitation(id=invitation_id, status="PENDING")
     
-    registration_data = VendorPreRegistrationCreate(
+    registration_data = VendorRegistrationCreate(
         business_name="Vendor Corp",
         contact_person="John Doe",
         email="vendor@example.com",
@@ -83,7 +83,7 @@ def test_submit_pre_registration_already_exists():
         # Act & Assert
         from fastapi import HTTPException
         with pytest.raises(HTTPException) as excinfo:
-            PreRegistrationService.submit_pre_registration(
+            VendorRegistrationService.submit_registration(
                 db=db,
                 token=token,
                 registration_data=registration_data
@@ -91,7 +91,7 @@ def test_submit_pre_registration_already_exists():
         assert excinfo.value.status_code == 400
         assert "already been submitted" in excinfo.value.detail
 
-def test_get_pre_registrations():
+def test_get_registrations():
     # Arrange
     db = MagicMock()
     tenant_id = "tenant_1"
@@ -109,7 +109,7 @@ def test_get_pre_registrations():
     mock_limit.all.return_value = [MagicMock(), MagicMock()] # Return 2 items
 
     # Act
-    result = PreRegistrationService.get_pre_registrations(
+    result = VendorRegistrationService.get_registrations(
         db=db,
         tenant_id=tenant_id,
         page=1,

@@ -9,15 +9,15 @@ import {
     Button,
     useToast
 } from '@/components/atoms';
-import { preRegistrationsAPI, VendorPreRegistration } from '@/api/preRegistrations';
+import { vendorRegistrationsAPI, VendorRegistration } from '@/api/vendorRegistrations';
 import { questionnaireApi } from '@/api/questionnaires';
 
-export const PreRegistrationDetailsPage = () => {
+export const VendorRegistrationDetailsPage = () => {
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
     const { toast } = useToast();
 
-    const [vendor, setVendor] = useState<VendorPreRegistration | null>(null);
+    const [vendor, setVendor] = useState<VendorRegistration | null>(null);
     const [groupedQuestionnaires, setGroupedQuestionnaires] = useState<Record<string, any[]>>({});
     const [selectedQuestionnaireIds, setSelectedQuestionnaireIds] = useState<string[]>([]);
     const [expandedDomains, setExpandedDomains] = useState<Set<string>>(new Set());
@@ -28,7 +28,7 @@ export const PreRegistrationDetailsPage = () => {
         if (!id) return;
         try {
             setIsLoading(true);
-            const vendorData = await preRegistrationsAPI.getById(id);
+            const vendorData = await vendorRegistrationsAPI.getById(id);
             setVendor(vendorData);
 
             // Fetch all questionnaires and group by domain
@@ -41,7 +41,7 @@ export const PreRegistrationDetailsPage = () => {
             setGroupedQuestionnaires(grouped);
 
             // Fetch assigned questionnaire IDs
-            const assignedData = await preRegistrationsAPI.getAssignedQuestionnaires(id);
+            const assignedData = await vendorRegistrationsAPI.getAssignedQuestionnaires(id);
             setSelectedQuestionnaireIds(assignedData.map(a => a.questionnaire_id));
         } catch (error) {
             console.error('Failed to fetch details:', error);
@@ -77,7 +77,7 @@ export const PreRegistrationDetailsPage = () => {
         if (!id) return;
         try {
             setIsSaving(true);
-            await preRegistrationsAPI.assignQuestionnaires(id, { questionnaire_ids: selectedQuestionnaireIds });
+            await vendorRegistrationsAPI.assignQuestionnaires(id, { questionnaire_ids: selectedQuestionnaireIds });
             toast.success('Questionnaires assigned successfully');
             fetchDetails(); // Refetch to get updated status
         } catch (error) {
@@ -130,8 +130,12 @@ export const PreRegistrationDetailsPage = () => {
                             <MapPin className="h-3.5 w-3.5 shrink-0 text-indigo-400" />
                             <span className="truncate">{vendor.city}, {vendor.country}</span>
                             <span className="text-muted-foreground/30">•</span>
-                            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wider bg-emerald-100 text-emerald-700 border border-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-400 dark:border-emerald-800/30">
-                                Pre-Registered
+                            <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wider border ${vendor.status === 'APPROVED' ? 'bg-emerald-100 text-emerald-700 border-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-400 dark:border-emerald-800/30'
+                                : vendor.status === 'REJECTED' ? 'bg-red-100 text-red-700 border-red-200 dark:bg-red-900/30 dark:text-red-400 dark:border-red-800/30'
+                                    : vendor.status === 'SUBMITTED' ? 'bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-900/30 dark:text-blue-400 dark:border-blue-800/30'
+                                        : 'bg-amber-100 text-amber-700 border-amber-200 dark:bg-amber-900/30 dark:text-amber-400 dark:border-amber-800/30'
+                                }`}>
+                                {vendor.status?.replace(/_/g, ' ') || 'PENDING'}
                             </span>
                         </div>
                     </div>
@@ -156,6 +160,12 @@ export const PreRegistrationDetailsPage = () => {
                                     <User className="h-3 w-3 text-violet-400" /> Contact Person
                                 </p>
                                 <p className="text-sm font-medium text-foreground">{vendor.contact_person}</p>
+                            </div>
+                            <div className="space-y-1.5 p-3 rounded-lg bg-slate-50/80 dark:bg-muted/20 border border-slate-100 dark:border-border/30">
+                                <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-400 dark:text-muted-foreground flex items-center gap-1.5">
+                                    <Mail className="h-3 w-3 text-indigo-400" /> Contact Person Email
+                                </p>
+                                <p className="text-sm font-medium text-foreground">{vendor.contact_person_email || <span className="italic text-muted-foreground">Not provided</span>}</p>
                             </div>
                             <div className="space-y-1.5 p-3 rounded-lg bg-slate-50/80 dark:bg-muted/20 border border-slate-100 dark:border-border/30">
                                 <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-400 dark:text-muted-foreground flex items-center gap-1.5">

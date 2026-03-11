@@ -17,8 +17,8 @@ class VendorQuestionnaireAssignment(Base):
     assigned_at = Column(DateTime(timezone=True), server_default=func.now())
     completed_at = Column(DateTime(timezone=True), nullable=True)
 
-    # Relationship to PreRegistration 
-    pre_registration = relationship("VendorPreRegistration", back_populates="questionnaire_assignments")
+    # Relationship to VendorRegistration 
+    pre_registration = relationship("VendorRegistration", back_populates="questionnaire_assignments")
     
     # Relationship to Questionnaire
     questionnaire = relationship("Questionnaire", back_populates="assignments")

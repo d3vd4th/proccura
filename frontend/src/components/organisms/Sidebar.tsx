@@ -63,7 +63,7 @@ const navigation: NavItem[] = [
         icon: Mail,
     },
     {
-        title: 'Pre Registrations',
+        title: 'Vendor Registrations',
         href: '/pre-registrations',
         icon: Users,
     },

@@ -17,6 +17,7 @@ export interface InvitationVerify {
 export interface PreRegistrationData {
     business_name: string;
     contact_person: string;
+    contact_person_email?: string;
     email: string;
     phone: string;
     address_line1: string;
@@ -36,12 +37,14 @@ export interface PreRegistrationResponse {
     invitation_id: string;
     business_name: string;
     contact_person: string;
+    contact_person_email?: string;
     email: string;
     phone: string;
     city: string;
     state: string;
     country: string;
     business_type?: string;
+    status: string;
     created_at: string;
 }
 

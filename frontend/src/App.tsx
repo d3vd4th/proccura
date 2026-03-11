@@ -19,8 +19,8 @@ import {
     ReportsPage,
     InvitationsPage,
     PreRegistrationPage,
-    PreRegistrationsPage,
-    PreRegistrationDetailsPage,
+    VendorRegistrationsPage,
+    VendorRegistrationDetailsPage,
     ProfilePage,
 } from '@/components';
 
@@ -86,8 +86,8 @@ function App() {
                             <Route path="/configure" element={<ConfigurePage />} />
 
                             <Route path="/invitations" element={<InvitationsPage />} />
-                            <Route path="/pre-registrations" element={<PreRegistrationsPage />} />
-                            <Route path="/pre-registrations/:id" element={<PreRegistrationDetailsPage />} />
+                            <Route path="/pre-registrations" element={<VendorRegistrationsPage />} />
+                            <Route path="/pre-registrations/:id" element={<VendorRegistrationDetailsPage />} />
                             <Route path="/profile" element={<ProfilePage />} />
                         </Route>
 

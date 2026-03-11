@@ -29,7 +29,7 @@ class PaginatedInvitations(BaseModel):
     total_pages: int
 
 
-# --- Pre-Registration Schemas ---
+# --- Vendor Registration Schemas ---
 
 class InvitationVerifyOut(BaseModel):
     """Returned when a vendor clicks the invitation link."""
@@ -40,10 +40,11 @@ class InvitationVerifyOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
-class VendorPreRegistrationCreate(BaseModel):
-    """Vendor fills this form during pre-registration."""
+class VendorRegistrationCreate(BaseModel):
+    """Vendor fills this form during registration."""
     business_name: str
     contact_person: str
+    contact_person_email: Optional[str] = None
     email: EmailStr
     phone: str
 
@@ -62,22 +63,24 @@ class VendorPreRegistrationCreate(BaseModel):
     products_services: Optional[str] = None
 
 
-class VendorPreRegistrationOut(BaseModel):
+class VendorRegistrationOut(BaseModel):
     id: UUID
     invitation_id: UUID
     business_name: str
     contact_person: str
+    contact_person_email: Optional[str] = None
     email: str
     phone: str
     city: str
     state: str
     country: str
     business_type: Optional[str] = None
+    status: str = "pending"
     created_at: datetime
 
 
-class PaginatedVendorPreRegistrations(BaseModel):
-    items: List[VendorPreRegistrationOut]
+class PaginatedVendorRegistrations(BaseModel):
+    items: List[VendorRegistrationOut]
     total: int
     page: int
     limit: int

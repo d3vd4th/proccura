@@ -93,15 +93,15 @@ def send_invitation_email(
         raise
 
 
-def send_pre_registration_notification(
+def send_registration_notification(
     to_email: str,
     vendor_name: str,
     business_name: str,
     tenant_name: str = "Proccura",
 ):
-    """Notify the inviter that a vendor has completed pre-registration."""
+    """Notify the inviter that a vendor has completed registration."""
     
-    subject = f"Vendor Pre-registration Completed: {business_name}"
+    subject = f"Vendor Registration Completed: {business_name}"
 
     html_body = f"""
     <!DOCTYPE html>
@@ -123,8 +123,8 @@ def send_pre_registration_notification(
                 <h1>proccura.</h1>
             </div>
             <div class="body">
-                <h2>Pre-registration Completed</h2>
-                <p>The vendor <strong>{business_name}</strong> (Contact: {vendor_name}) has completed the pre-registration form.</p>
+                <h2>Registration Completed</h2>
+                <p>The vendor <strong>{business_name}</strong> (Contact: {vendor_name}) has completed the registration form.</p>
                 <p>Please log in to the platform to review their details.</p>
             </div>
             <div class="footer">

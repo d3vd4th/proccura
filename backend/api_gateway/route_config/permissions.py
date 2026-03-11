@@ -10,8 +10,8 @@ import re
 #   POST /api/v1/invitations                          → invitation.create
 #   PUT  /api/v1/invitations/{id}                     → invitation.update
 #   DELETE /api/v1/vendors/{id}                       → vendor.delete
-#   GET  /api/v1/pre-registrations/{id}/questionnaires            → pre-registration.read_questionnaire
-#   POST /api/v1/pre-registrations/{id}/questionnaires/assign     → pre-registration.assign_questionnaire
+#   GET  /api/v1/vendor-registrations/{id}/questionnaires            → vendor_registration.read_questionnaire
+#   POST /api/v1/vendor-registrations/{id}/questionnaires/assign     → vendor_registration.assign_questionnaire
 #   GET  /api/v1/questionnaires/domains               → questionnaire.read_domain
 
 
@@ -64,11 +64,11 @@ def get_required_permission(method: str, path: str) -> str | None:
     if len(parts) < 3:
         return None
 
-    # Primary resource  (e.g. "pre-registrations")
+    # Primary resource  (e.g. "vendor-registrations")
     resource = _singularize(parts[2].replace("-", "_"))
 
     # Collect named segments after the primary resource, skipping IDs
-    # e.g. /api/v1/pre-registrations/{uuid}/questionnaires/assign
+    # e.g. /api/v1/vendor-registrations/{uuid}/questionnaires/assign
     #   remaining = ["questionnaires", "assign"]
     remaining: list[str] = []
     for segment in parts[3:]:

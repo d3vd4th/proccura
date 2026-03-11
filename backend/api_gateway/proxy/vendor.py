@@ -34,28 +34,28 @@ async def vendor_root(request: Request):
 
 
 @router.api_route(
-    "/api/v1/pre-registrations/{path:path}",
+    "/api/v1/vendor-registrations/{path:path}",
     methods=["GET", "POST", "PUT", "DELETE", "PATCH"]
 )
-async def pre_registrations_proxy(path: str, request: Request):
-    """Proxy /api/v1/pre-registrations/* requests to vendor service"""
+async def vendor_registrations_proxy(path: str, request: Request):
+    """Proxy /api/v1/vendor-registrations/* requests to vendor service"""
     return await proxy_request(
         request,
         settings.VENDOR_SERVICE_URL,
-        f"/api/v1/pre-registrations/{path}"
+        f"/api/v1/vendor-registrations/{path}"
     )
 
 
 @router.api_route(
-    "/api/v1/pre-registrations",
+    "/api/v1/vendor-registrations",
     methods=["GET", "POST", "PUT", "DELETE", "PATCH"]
 )
-async def pre_registrations_root(request: Request):
-    """Handle requests to /api/v1/pre-registrations (no subpath)"""
+async def vendor_registrations_root(request: Request):
+    """Handle requests to /api/v1/vendor-registrations (no subpath)"""
     return await proxy_request(
         request,
         settings.VENDOR_SERVICE_URL,
-        "/api/v1/pre-registrations"
+        "/api/v1/vendor-registrations"
     )
 
 @router.api_route(

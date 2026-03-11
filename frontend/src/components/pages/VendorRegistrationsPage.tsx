@@ -10,10 +10,10 @@ import {
     useToast,
 } from '@/components/atoms';
 import { DataTable, TableFilter } from '@/components/molecules';
-import { preRegistrationsAPI, VendorPreRegistration } from '@/api/preRegistrations';
+import { vendorRegistrationsAPI, VendorRegistration } from '@/api/vendorRegistrations';
 
-export const PreRegistrationsPage = () => {
-    const [registrations, setRegistrations] = useState<VendorPreRegistration[]>([]);
+export const VendorRegistrationsPage = () => {
+    const [registrations, setRegistrations] = useState<VendorRegistration[]>([]);
     const [currentPage, setCurrentPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
     const [total, setTotal] = useState(0);
@@ -26,7 +26,7 @@ export const PreRegistrationsPage = () => {
     const fetchRegistrations = useCallback(async () => {
         try {
             setIsLoading(true);
-            const data = await preRegistrationsAPI.list({
+            const data = await vendorRegistrationsAPI.list({
                 page: currentPage,
                 limit: pageSize,
                 search: search || undefined,
@@ -50,7 +50,7 @@ export const PreRegistrationsPage = () => {
         {
             key: 'business_name',
             label: 'Business Name',
-            render: (_: any, item: VendorPreRegistration) => (
+            render: (_: any, item: VendorRegistration) => (
                 <div className="flex items-center gap-2">
                     <Building2 className="h-4 w-4 text-muted-foreground" />
                     <span className="font-medium">{item.business_name}</span>
@@ -60,7 +60,7 @@ export const PreRegistrationsPage = () => {
         {
             key: 'contact_person',
             label: 'Contact Person',
-            render: (_: any, item: VendorPreRegistration) => (
+            render: (_: any, item: VendorRegistration) => (
                 <div className="flex items-center gap-2">
                     <User className="h-4 w-4 text-muted-foreground" />
                     <span>{item.contact_person}</span>
@@ -70,7 +70,7 @@ export const PreRegistrationsPage = () => {
         {
             key: 'email',
             label: 'Email',
-            render: (_: any, item: VendorPreRegistration) => (
+            render: (_: any, item: VendorRegistration) => (
                 <div className="flex items-center gap-2">
                     <Mail className="h-4 w-4 text-muted-foreground" />
                     <span>{item.email}</span>
@@ -80,7 +80,7 @@ export const PreRegistrationsPage = () => {
         {
             key: 'phone',
             label: 'Phone',
-            render: (_: any, item: VendorPreRegistration) => (
+            render: (_: any, item: VendorRegistration) => (
                 <div className="flex items-center gap-2">
                     <Phone className="h-4 w-4 text-muted-foreground" />
                     <span>{item.phone}</span>
@@ -90,7 +90,7 @@ export const PreRegistrationsPage = () => {
         {
             key: 'city',
             label: 'Location',
-            render: (_: any, item: VendorPreRegistration) => (
+            render: (_: any, item: VendorRegistration) => (
                 <div className="flex items-center gap-2">
                     <MapPin className="h-4 w-4 text-muted-foreground" />
                     <span>{item.city}, {item.state}</span>
@@ -100,7 +100,7 @@ export const PreRegistrationsPage = () => {
         {
             key: 'created_at',
             label: 'Submitted At',
-            render: (_: any, item: VendorPreRegistration) => (
+            render: (_: any, item: VendorRegistration) => (
                 <span className="text-muted-foreground text-xs">
                     {new Date(item.created_at).toLocaleDateString()}
                 </span>
@@ -113,7 +113,7 @@ export const PreRegistrationsPage = () => {
             <Card className="flex flex-col flex-1 min-h-0">
                 <CardHeader className="flex flex-row items-center justify-between shrink-0">
                     <div>
-                        <CardTitle>Pre Registrations</CardTitle>
+                        <CardTitle>Vendor Registrations</CardTitle>
                         <CardDescription>Vendors who have completed the initial registration form.</CardDescription>
                     </div>
                 </CardHeader>
