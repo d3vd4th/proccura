@@ -1,4 +1,4 @@
-# Proccura   
+# proccura   
 **AI-Powered Procurement Platform**
 
 Proccura is a modern, multi-tenant procurement platform that helps organizations simplify vendor management, automate purchasing workflows, and gain real-time control over spend and compliance using AI-driven insights.
