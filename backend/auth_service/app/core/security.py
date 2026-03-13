@@ -19,7 +19,8 @@ def create_access_token(
     subject: str,
     is_super_admin: bool,
     # tenant_id: Optional[str] = None,
-    role_id: Optional[str] = None
+    role_id: Optional[str] = None,
+    user_type: Optional[str] = "INTERNAL",
 ) -> str:
     """
     Create access token with tenant and role context.
@@ -29,6 +30,7 @@ def create_access_token(
         "is_super_admin": is_super_admin,
         # "tenant_id": tenant_id,
         "role_id": role_id,
+        "user_type": user_type,
         "type": "access",
         "exp": datetime.utcnow() + timedelta(
             minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES

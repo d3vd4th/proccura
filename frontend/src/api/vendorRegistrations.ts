@@ -38,6 +38,24 @@ export interface PaginatedVendorRegistrations {
     total_pages: number;
 }
 
+export interface VendorUser {
+    id: string;
+    registration_id: string;
+    auth_user_id: string;
+    email: string;
+    first_name: string;
+    last_name?: string;
+    is_primary: boolean;
+    created_at: string;
+}
+
+export interface VendorUserCreate {
+    email: string;
+    first_name: string;
+    last_name?: string;
+    is_primary?: boolean;
+}
+
 export const vendorRegistrationsAPI = {
     list: async (params: { page?: number; limit?: number; search?: string } = {}) => {
         const { data } = await api.get<PaginatedVendorRegistrations>('/api/v1/vendor-registrations', {
@@ -56,5 +74,18 @@ export const vendorRegistrationsAPI = {
     getAssignedQuestionnaires: async (id: string) => {
         const { data } = await api.get<VendorQuestionnaireAssignment[]>(`/api/v1/vendor-registrations/${id}/questionnaires`);
         return data;
+    },
+
+    // Vendor Users
+    provisionUser: async (id: string, userData: VendorUserCreate) => {
+        const { data } = await api.post<VendorUser>(`/api/v1/vendor-registrations/${id}/users`, userData);
+        return data;
+    },
+    listUsers: async (id: string) => {
+        const { data } = await api.get<VendorUser[]>(`/api/v1/vendor-registrations/${id}/users`);
+        return data;
+    },
+    deleteUser: async (registrationId: string, userId: string) => {
+        await api.delete(`/api/v1/vendor-registrations/${registrationId}/users/${userId}`);
     },
 };

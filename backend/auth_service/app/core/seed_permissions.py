@@ -55,6 +55,9 @@ PERMISSIONS = [
     ("vendor_registration.delete", "Delete vendor registrations", "vendor_registration"),
     ("vendor_registration.assign_questionnaire", "Assign questionnaires to vendor registrations", "vendor_registration"),
     ("vendor_registration.read_questionnaire", "View assigned questionnaires for vendor registrations", "vendor_registration"),
+    ("vendor_registration.create_user", "Provision vendor users", "vendor_registration"),
+    ("vendor_registration.read_user", "View vendor users", "vendor_registration"),
+    ("vendor_registration.delete_user", "Remove vendor users", "vendor_registration"),
 
     # Questionnaire
     ("questionnaire.create", "Create questionnaires", "questionnaire"),

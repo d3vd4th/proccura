@@ -81,6 +81,7 @@ def login(
                 "is_super_admin": user.is_super_admin,
                 "profile_pic_url": user.profile_pic_url,
                 "tenant_id": user.tenant_id,
+                "user_type": getattr(user, "user_type", "INTERNAL"),
             },
             "access_token": access_token,
             "refresh_token": refresh_token,
@@ -161,6 +162,7 @@ def get_current_user_info(
         "tenant_id": tenant_user.tenant_id if tenant_user else None,
         "role_id": tenant_user.role_id if tenant_user else None,
         "role_name": role_name,
+        "user_type": tenant_user.user_type.value if tenant_user and tenant_user.user_type else "INTERNAL",
         "permissions": permissions,
     }
 

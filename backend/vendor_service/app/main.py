@@ -11,6 +11,7 @@ from app.api.v1.endpoints import (
 # Import all models so Base.metadata.create_all picks them up
 from app.models.invitation import Invitation  # noqa: F401
 from app.models.vendor_registration import VendorRegistration  # noqa: F401
+from app.models.vendor_user import VendorUser  # noqa: F401
 from app.models.questionnaire import Questionnaire  # noqa: F401
 from app.models.vendor_questionnaire_assignment import VendorQuestionnaireAssignment  # noqa: F401
 

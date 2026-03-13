@@ -11,6 +11,10 @@ class Settings(BaseSettings):
     # Frontend URL for invitation links
     FRONTEND_URL: str = "http://localhost:5173"
 
+    # Auth service (for internal calls)
+    AUTH_SERVICE_URL: str = "http://localhost:8001"
+    INTERNAL_API_KEY: str = "dev-internal-key"
+
     model_config = SettingsConfigDict(env_file=".env")
 
 

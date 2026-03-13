@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Loader2, ArrowLeft, Building2, User, Mail, Phone, MapPin, Briefcase, FileText, CheckCircle2, Circle, ChevronRight, ChevronDown } from 'lucide-react';
+import { Loader2, ArrowLeft, Building2, User, Mail, Phone, MapPin, Briefcase, FileText, CheckCircle2, Circle, ChevronRight, ChevronDown, UserPlus, Trash2, Shield } from 'lucide-react';
 import {
     Card,
     CardContent,
@@ -9,7 +9,7 @@ import {
     Button,
     useToast
 } from '@/components/atoms';
-import { vendorRegistrationsAPI, VendorRegistration } from '@/api/vendorRegistrations';
+import { vendorRegistrationsAPI, VendorRegistration, VendorUser } from '@/api/vendorRegistrations';
 import { questionnaireApi } from '@/api/questionnaires';
 
 export const VendorRegistrationDetailsPage = () => {
@@ -23,6 +23,14 @@ export const VendorRegistrationDetailsPage = () => {
     const [expandedDomains, setExpandedDomains] = useState<Set<string>>(new Set());
     const [isLoading, setIsLoading] = useState(true);
     const [isSaving, setIsSaving] = useState(false);
+
+    // Vendor Users state
+    const [vendorUsers, setVendorUsers] = useState<VendorUser[]>([]);
+    const [showAddUser, setShowAddUser] = useState(false);
+    const [newUserEmail, setNewUserEmail] = useState('');
+    const [newUserFirstName, setNewUserFirstName] = useState('');
+    const [newUserLastName, setNewUserLastName] = useState('');
+    const [isProvisioning, setIsProvisioning] = useState(false);
 
     const fetchDetails = useCallback(async () => {
         if (!id) return;
@@ -43,6 +51,10 @@ export const VendorRegistrationDetailsPage = () => {
             // Fetch assigned questionnaire IDs
             const assignedData = await vendorRegistrationsAPI.getAssignedQuestionnaires(id);
             setSelectedQuestionnaireIds(assignedData.map(a => a.questionnaire_id));
+
+            // Fetch vendor users
+            const usersData = await vendorRegistrationsAPI.listUsers(id);
+            setVendorUsers(usersData);
         } catch (error) {
             console.error('Failed to fetch details:', error);
             toast.error('Failed to load vendor details');
@@ -85,6 +97,58 @@ export const VendorRegistrationDetailsPage = () => {
             toast.error('Failed to assign questionnaires');
         } finally {
             setIsSaving(false);
+        }
+    };
+
+    const handleProvisionUser = async (isPrimary = false) => {
+        if (!id) return;
+        if (!newUserEmail || !newUserFirstName) {
+            toast.error('Email and first name are required');
+            return;
+        }
+        try {
+            setIsProvisioning(true);
+            await vendorRegistrationsAPI.provisionUser(id, {
+                email: newUserEmail,
+                first_name: newUserFirstName,
+                last_name: newUserLastName || undefined,
+                is_primary: isPrimary,
+            });
+            toast.success(`User ${newUserEmail} provisioned successfully`);
+            setNewUserEmail('');
+            setNewUserFirstName('');
+            setNewUserLastName('');
+            setShowAddUser(false);
+            // Refresh users list
+            const usersData = await vendorRegistrationsAPI.listUsers(id);
+            setVendorUsers(usersData);
+        } catch (error: any) {
+            const msg = error?.response?.data?.detail || 'Failed to provision user';
+            toast.error(msg);
+        } finally {
+            setIsProvisioning(false);
+        }
+    };
+
+    const handleDeleteUser = async (userId: string, email: string) => {
+        if (!id) return;
+        if (!confirm(`Remove vendor user ${email}?`)) return;
+        try {
+            await vendorRegistrationsAPI.deleteUser(id, userId);
+            toast.success(`User ${email} removed`);
+            setVendorUsers(prev => prev.filter(u => u.id !== userId));
+        } catch {
+            toast.error('Failed to remove user');
+        }
+    };
+
+    const handleAddContactPerson = () => {
+        if (vendor) {
+            const nameParts = vendor.contact_person.split(' ');
+            setNewUserFirstName(nameParts[0] || '');
+            setNewUserLastName(nameParts.slice(1).join(' ') || '');
+            setNewUserEmail(vendor.contact_person_email || vendor.email);
+            setShowAddUser(true);
         }
     };
 
@@ -198,6 +262,133 @@ export const VendorRegistrationDetailsPage = () => {
                                 )}
                             </div>
                         </div>
+                    </CardContent>
+                </Card>
+
+                {/* Vendor Users */}
+                <Card className="shadow-sm border-border/50">
+                    <CardHeader className="dark:bg-muted/30 border-b py-4 px-6">
+                        <div className="flex items-center justify-between">
+                            <CardTitle className="flex items-center gap-2.5 text-base">
+                                <div className="h-7 w-7 rounded-lg bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center">
+                                    <Shield className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />
+                                </div>
+                                Vendor Users
+                                {vendorUsers.length > 0 && (
+                                    <span className="text-xs text-muted-foreground font-normal">({vendorUsers.length})</span>
+                                )}
+                            </CardTitle>
+                            <div className="flex items-center gap-2">
+                                {vendor.contact_person_email && vendorUsers.length === 0 && (
+                                    <Button
+                                        size="sm"
+                                        variant="outline"
+                                        onClick={handleAddContactPerson}
+                                    >
+                                        <UserPlus className="mr-1.5 h-3.5 w-3.5" />
+                                        Add Contact Person
+                                    </Button>
+                                )}
+                                <Button
+                                    size="sm"
+                                    variant={showAddUser ? 'secondary' : 'default'}
+                                    onClick={() => setShowAddUser(!showAddUser)}
+                                >
+                                    <UserPlus className="mr-1.5 h-3.5 w-3.5" />
+                                    {showAddUser ? 'Cancel' : 'Add User'}
+                                </Button>
+                            </div>
+                        </div>
+                    </CardHeader>
+                    <CardContent className="p-6">
+                        {/* Add User Form */}
+                        {showAddUser && (
+                            <div className="mb-6 p-4 rounded-xl border border-dashed border-primary/30 bg-primary/5">
+                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-3">
+                                    <div>
+                                        <label className="text-xs font-medium text-muted-foreground block mb-1">Email *</label>
+                                        <input
+                                            type="email"
+                                            value={newUserEmail}
+                                            onChange={(e) => setNewUserEmail(e.target.value)}
+                                            placeholder="vendor@company.com"
+                                            className="w-full px-3 py-2 rounded-lg border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="text-xs font-medium text-muted-foreground block mb-1">First Name *</label>
+                                        <input
+                                            type="text"
+                                            value={newUserFirstName}
+                                            onChange={(e) => setNewUserFirstName(e.target.value)}
+                                            placeholder="John"
+                                            className="w-full px-3 py-2 rounded-lg border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="text-xs font-medium text-muted-foreground block mb-1">Last Name</label>
+                                        <input
+                                            type="text"
+                                            value={newUserLastName}
+                                            onChange={(e) => setNewUserLastName(e.target.value)}
+                                            placeholder="Doe"
+                                            className="w-full px-3 py-2 rounded-lg border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+                                        />
+                                    </div>
+                                </div>
+                                <Button
+                                    size="sm"
+                                    onClick={() => handleProvisionUser(false)}
+                                    disabled={isProvisioning || !newUserEmail || !newUserFirstName}
+                                >
+                                    {isProvisioning ? (
+                                        <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
+                                    ) : (
+                                        <UserPlus className="mr-1.5 h-3.5 w-3.5" />
+                                    )}
+                                    {isProvisioning ? 'Provisioning...' : 'Provision User'}
+                                </Button>
+                            </div>
+                        )}
+
+                        {/* Users List */}
+                        {vendorUsers.length === 0 ? (
+                            <div className="flex flex-col items-center justify-center py-12 text-center text-muted-foreground">
+                                <User className="h-8 w-8 opacity-20 mb-2" />
+                                <p className="text-sm">No vendor users provisioned yet.</p>
+                                <p className="text-xs mt-1">Add users to allow them to log in and complete questionnaires.</p>
+                            </div>
+                        ) : (
+                            <div className="divide-y divide-border/50">
+                                {vendorUsers.map((vu) => (
+                                    <div key={vu.id} className="flex items-center justify-between py-3 first:pt-0 last:pb-0">
+                                        <div className="flex items-center gap-3">
+                                            <div className="h-9 w-9 rounded-full bg-linear-to-br from-emerald-500 to-teal-600 text-white flex items-center justify-center text-sm font-bold">
+                                                {vu.first_name.charAt(0).toUpperCase()}
+                                            </div>
+                                            <div>
+                                                <p className="text-sm font-medium text-foreground flex items-center gap-2">
+                                                    {vu.first_name} {vu.last_name || ''}
+                                                    {vu.is_primary && (
+                                                        <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 font-semibold">
+                                                            Primary
+                                                        </span>
+                                                    )}
+                                                </p>
+                                                <p className="text-xs text-muted-foreground">{vu.email}</p>
+                                            </div>
+                                        </div>
+                                        <button
+                                            onClick={() => handleDeleteUser(vu.id, vu.email)}
+                                            className="p-1.5 rounded-md text-muted-foreground hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+                                            title="Remove user"
+                                        >
+                                            <Trash2 className="h-4 w-4" />
+                                        </button>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
                     </CardContent>
                 </Card>
 

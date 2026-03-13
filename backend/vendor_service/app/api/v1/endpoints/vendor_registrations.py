@@ -1,12 +1,13 @@
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
-from typing import Optional
+from typing import Optional, List
 
 from app.core.database import get_db
 from app.schemas.invitation import PaginatedVendorRegistrations, VendorRegistrationOut
 from app.schemas.vendor_questionnaire import VendorQuestionnaireAssignCreate, VendorQuestionnaireAssignmentOut
+from app.schemas.vendor_user import VendorUserCreate, VendorUserOut
 from app.services.vendor_registration_service import VendorRegistrationService
-from typing import List
+from app.services.vendor_user_service import VendorUserService
 from app.dependencies.auth import get_tenant_id
 
 router = APIRouter()
@@ -35,7 +36,6 @@ def get_vendor_registration(
 ):
     reg = VendorRegistrationService.get_registration(db, id, tenant_id)
     if not reg:
-        from fastapi import HTTPException
         raise HTTPException(status_code=404, detail="Vendor registration not found")
     return reg
 
@@ -55,3 +55,41 @@ def get_assigned_questionnaires(
     db: Session = Depends(get_db)
 ):
     return VendorRegistrationService.get_assigned_questionnaires(db, id, tenant_id)
+
+
+# --- Vendor User Endpoints ---
+
+@router.post("/{id}/users", response_model=VendorUserOut, status_code=201)
+def provision_vendor_user(
+    id: str,
+    user_data: VendorUserCreate,
+    tenant_id: str = Depends(get_tenant_id),
+    db: Session = Depends(get_db),
+):
+    """Provision a new vendor user for a registration."""
+    return VendorUserService.provision_user(db, id, tenant_id, user_data)
+
+
+@router.get("/{id}/users", response_model=List[VendorUserOut])
+def list_vendor_users(
+    id: str,
+    tenant_id: str = Depends(get_tenant_id),
+    db: Session = Depends(get_db),
+):
+    """List all vendor users for a registration."""
+    return VendorUserService.list_users(db, id, tenant_id)
+
+
+@router.delete("/{id}/users/{user_id}", status_code=204)
+def delete_vendor_user(
+    id: str,
+    user_id: str,
+    tenant_id: str = Depends(get_tenant_id),
+    db: Session = Depends(get_db),
+):
+    """Remove a vendor user."""
+    result = VendorUserService.delete_user(db, id, user_id, tenant_id)
+    if not result:
+        raise HTTPException(status_code=404, detail="Vendor user not found")
+    return None
+

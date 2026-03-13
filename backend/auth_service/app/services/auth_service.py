@@ -95,6 +95,7 @@ def authenticate_user(db: Session, email: str, password: str, tenant_id: Optiona
 
     user.tenant_id = tenant_user.tenant_id
     user.role_id = tenant_user.role_id
+    user.user_type = tenant_user.user_type.value if tenant_user.user_type else "INTERNAL"
     return user
 
 
@@ -105,12 +106,14 @@ def issue_tokens(user: User):
     """
     tenant_id = str(user.tenant_id) if hasattr(user, "tenant_id") and user.tenant_id else None
     role_id = str(user.role_id) if hasattr(user, "role_id") and user.role_id else None
+    user_type = getattr(user, "user_type", "INTERNAL")
 
     access_token = create_access_token(
         subject=str(user.id),
         is_super_admin=user.is_super_admin,
         # tenant_id=tenant_id,
-        role_id=role_id
+        role_id=role_id,
+        user_type=user_type,
     )
 
     refresh_token = create_refresh_token(
@@ -169,12 +172,16 @@ def refresh_access_token(db: Session, refresh_token: str):
             )
         # Update role_id from DB in case it changed
         role_id = str(tenant_user.role_id) if tenant_user.role_id else None
+        user_type = tenant_user.user_type.value if tenant_user.user_type else "INTERNAL"
+    else:
+        user_type = "INTERNAL"
 
     access_token = create_access_token(
         subject=str(user.id),
         is_super_admin=user.is_super_admin,
         # tenant_id=tenant_id,
-        role_id=role_id
+        role_id=role_id,
+        user_type=user_type,
     )
 
     return access_token

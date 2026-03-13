@@ -11,6 +11,11 @@ class TenantUserStatus(enum.Enum):
     REMOVED = "removed"
 
 
+class UserType(str, enum.Enum):
+    INTERNAL = "INTERNAL"
+    VENDOR = "VENDOR"
+
+
 class TenantUser(Base):
     __tablename__ = "tenant_users"
 
@@ -36,7 +41,13 @@ class TenantUser(Base):
         Enum(TenantUserStatus, name="tenant_user_status"),
         default=TenantUserStatus.ACTIVE,
         nullable=False
-    ) 
+    )
+
+    user_type = Column(
+        Enum(UserType, name="user_type_enum"),
+        default=UserType.INTERNAL,
+        nullable=False
+    )
 
     joined_at = Column(DateTime(timezone=True), server_default=func.now())
 

@@ -73,13 +73,25 @@ async def require_auth(request: Request):
         "email": payload.get("email"), 
         "role_id": role_id,
         "tenant_id": tenant_id,
-        "is_super_admin": is_super_admin
+        "is_super_admin": is_super_admin,
+        "user_type": payload.get("user_type", "INTERNAL"),
     }
     
     # Super admin bypasses permission checks
     if is_super_admin:
         logger.debug(f"Super admin {user_id} bypassing permission check")
         return
+
+    # Vendor user route guard
+    user_type = payload.get("user_type", "INTERNAL")
+    if user_type == "VENDOR":
+        path = request.url.path
+        allowed_prefixes = ("/api/v1/vendor-portal", "/api/v1/auth")
+        if not any(path.startswith(prefix) for prefix in allowed_prefixes):
+            raise HTTPException(
+                status_code=403,
+                detail="Vendor users cannot access this resource"
+            )
     
     # Get required permission for this route
     required_permission = get_required_permission(request.method, request.url.path)
