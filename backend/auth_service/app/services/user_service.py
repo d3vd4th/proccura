@@ -1,7 +1,7 @@
 from sqlalchemy.orm import Session
 from app.models.user import User
 from app.models.role import Role
-from app.models.tenant_user import TenantUser, TenantUserStatus
+from app.models.tenant_user import TenantUser, TenantUserStatus,UserType
 from app.models.tenant import Tenant
 from app.core.security import hash_password
 from app.services.email_service import send_welcome_email
@@ -71,19 +71,44 @@ def create_user(
     return user
 
 
-def list_users(db: Session, tenant_id: str):
-    results = (
-        db.query(User, TenantUser.role_id)
+def list_users(
+    db: Session,
+    tenant_id: str,
+    search: str = None,
+    status: str = None,
+    role_id: str = None,
+    skip: int = 0,
+    limit: int = 20,
+):
+    query = (
+        db.query(User, TenantUser.role_id, TenantUser.status)
         .join(TenantUser)
-        .filter(
-            TenantUser.tenant_id == tenant_id,
-            TenantUser.status == TenantUserStatus.ACTIVE,
+        .filter(TenantUser.tenant_id == tenant_id,
+        TenantUser.status != TenantUserStatus.REMOVED,
+        TenantUser.user_type != UserType.VENDOR,
         )
-        .all()
     )
+
+    if status:
+        query = query.filter(TenantUser.status == status)
+
+    if role_id:
+        query = query.filter(TenantUser.role_id == role_id)
+
+    if search:
+        search_filter = f"%{search}%"
+        query = query.filter(
+            (User.email.ilike(search_filter))
+            | (User.first_name.ilike(search_filter))
+            | (User.last_name.ilike(search_filter))
+        )
+
+    results = query.offset(skip).limit(limit).all()
+
     users = []
-    for user, role_id in results:
+    for user, role_id, user_status in results:
         user.role_id = role_id
+        user.status = user_status.value if hasattr(user_status, "value") else user_status
         users.append(user)
     return users
 
@@ -93,28 +118,10 @@ def update_user(db: Session, user: User, tenant_id: str, payload):
         user.first_name = payload.first_name
     if payload.last_name is not None:
         user.last_name = payload.last_name
-    if payload.is_active is not None:
-        user.is_active = payload.is_active
     if payload.profile_pic_url is not None:
         user.profile_pic_url = payload.profile_pic_url
 
-    # Update role_id in TenantUser if provided
-    if payload.role_id is not None:
-        tenant_user = (
-            db.query(TenantUser)
-            .filter(
-                TenantUser.user_id == user.id,
-                TenantUser.tenant_id == tenant_id,
-            )
-            .first()
-        )
-        if tenant_user:
-            tenant_user.role_id = payload.role_id
-
-    db.commit()
-    db.refresh(user)
-
-    # Attach role_id to response
+    # Find TenantUser record
     tenant_user = (
         db.query(TenantUser)
         .filter(
@@ -123,7 +130,27 @@ def update_user(db: Session, user: User, tenant_id: str, payload):
         )
         .first()
     )
-    user.role_id = tenant_user.role_id if tenant_user else None
+
+    if tenant_user:
+        # Update role_id in TenantUser if provided
+        if payload.role_id is not None:
+            tenant_user.role_id = payload.role_id
+        
+        # Update status in TenantUser if provided
+        if payload.status is not None:
+            tenant_user.status = payload.status
+
+    db.commit()
+    db.refresh(user)
+
+    # Attach role_id and status to response
+    if tenant_user:
+        user.role_id = tenant_user.role_id
+        user.status = tenant_user.status.value if hasattr(tenant_user.status, "value") else tenant_user.status
+    else:
+        user.role_id = None
+        user.status = None
+        
     return user
 
 

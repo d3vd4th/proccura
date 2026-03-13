@@ -36,7 +36,7 @@ export const AddUserForm = ({ open, onOpenChange, onSubmit, user, isSubmitting =
         phone: '',
         password: '',
         role_id: '',
-        is_active: true,
+        status: 'ACTIVE',
     });
     const [showPassword, setShowPassword] = useState(false);
     const [roles, setRoles] = useState<Role[]>([]);
@@ -67,7 +67,7 @@ export const AddUserForm = ({ open, onOpenChange, onSubmit, user, isSubmitting =
                 phone: user.phone || '',
                 password: '',
                 role_id: user.role_id || '',
-                is_active: user.is_active,
+                status: user.status || 'ACTIVE',
             });
         } else {
             setFormData({
@@ -77,7 +77,7 @@ export const AddUserForm = ({ open, onOpenChange, onSubmit, user, isSubmitting =
                 phone: '',
                 password: '',
                 role_id: '',
-                is_active: true,
+                status: 'ACTIVE',
             });
         }
     }, [user, open]);
@@ -89,7 +89,7 @@ export const AddUserForm = ({ open, onOpenChange, onSubmit, user, isSubmitting =
                 first_name: formData.first_name,
                 last_name: formData.last_name || undefined,
                 phone: formData.phone || undefined,
-                is_active: formData.is_active,
+                status: formData.status,
                 role_id: formData.role_id || undefined,
             };
             onSubmit(updateData);
@@ -217,17 +217,19 @@ export const AddUserForm = ({ open, onOpenChange, onSubmit, user, isSubmitting =
 
                     {isEditMode && (
                         <div className="space-y-2">
-                            <Label htmlFor="is_active">Status</Label>
+                            <Label htmlFor="status">Status</Label>
                             <select
-                                id="is_active"
+                                id="status"
                                 className="w-full px-3 py-2 border rounded-md text-sm bg-background"
-                                value={formData.is_active ? 'active' : 'inactive'}
+                                value={formData.status}
                                 onChange={(e) =>
-                                    setFormData({ ...formData, is_active: e.target.value === 'active' })
+                                    setFormData({ ...formData, status: e.target.value })
                                 }
                             >
-                                <option value="active">Active</option>
-                                <option value="inactive">Inactive</option>
+                                <option value="ACTIVE">Active</option>
+                                <option value="INACTIVE">Inactive</option>
+                                <option value="SUSPENDED">Suspended</option>
+                                <option value="INVITED">Invited</option>
                             </select>
                         </div>
                     )}

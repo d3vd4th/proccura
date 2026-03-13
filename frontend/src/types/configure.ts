@@ -9,6 +9,7 @@ export interface UserData {
     role_id: string | null;
     is_active: boolean;
     profile_pic_url: string | null;
+    status: string;
 }
 
 export interface RoleData {

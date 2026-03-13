@@ -17,6 +17,7 @@ class UserUpdate(BaseModel):
     is_active: Optional[bool] = None
     profile_pic_url: Optional[str] = None
     role_id: Optional[str] = None
+    status: Optional[str] = None
 
 
 class UserResponse(BaseModel):
@@ -27,6 +28,7 @@ class UserResponse(BaseModel):
     is_active: bool
     profile_pic_url: Optional[str] = None
     role_id: Optional[str] = None
+    status: Optional[str] = None
 
     class Config:
         from_attributes = True

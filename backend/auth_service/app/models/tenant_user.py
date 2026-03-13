@@ -4,11 +4,12 @@ from sqlalchemy import Column, Enum, String, ForeignKey, DateTime, UniqueConstra
 from sqlalchemy.sql import func
 from app.core.database import Base
 
-class TenantUserStatus(enum.Enum):
-    INVITED = "invited"
-    ACTIVE = "active"
-    SUSPENDED = "suspended"
-    REMOVED = "removed"
+class TenantUserStatus(str, enum.Enum):
+    INVITED = "INVITED"
+    ACTIVE = "ACTIVE"
+    INACTIVE = "INACTIVE"
+    SUSPENDED = "SUSPENDED"
+    REMOVED = "REMOVED"
 
 
 class UserType(str, enum.Enum):

@@ -18,6 +18,7 @@ export interface UpdateUserData {
     is_active?: boolean;
     profile_pic_url?: string;
     role_id?: string;
+    status?: string;
 }
 
 export interface UsersResponse {

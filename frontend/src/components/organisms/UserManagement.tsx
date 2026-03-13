@@ -155,8 +155,10 @@ export const UserManagement = () => {
                                 key: 'status',
                                 label: 'Status',
                                 options: [
-                                    { value: 'active', label: 'Active' },
-                                    { value: 'inactive', label: 'Inactive' },
+                                    { value: 'ACTIVE', label: 'Active' },
+                                    { value: 'INACTIVE', label: 'Inactive' },
+                                    { value: 'SUSPENDED', label: 'Suspended' },
+                                    { value: 'INVITED', label: 'Invited' },
                                 ],
                             },
                             {
@@ -188,18 +190,27 @@ export const UserManagement = () => {
                                     ),
                                 },
                                 {
-                                    key: 'is_active',
+                                    key: 'status',
                                     label: 'Status',
-                                    render: (value) => (
-                                        <span
-                                            className={`px-2 py-1 rounded-full text-xs font-medium ${value
-                                                ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400'
-                                                : 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400'
-                                                }`}
-                                        >
-                                            {value ? 'Active' : 'Inactive'}
-                                        </span>
-                                    ),
+                                    render: (value) => {
+                                        const status = String(value).toUpperCase();
+                                        return (
+                                            <span
+                                                className={`px-3 py-1 rounded-full text-xs font-semibold tracking-wide shadow-sm ${status === 'ACTIVE'
+                                                    ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400'
+                                                    : status === 'SUSPENDED'
+                                                        ? 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400'
+                                                        : status === 'INVITED'
+                                                            ? 'bg-sky-100 text-sky-800 dark:bg-sky-900/30 dark:text-sky-400'
+                                                            : status === 'REMOVED'
+                                                                ? 'bg-rose-100 text-rose-800 dark:bg-rose-900/30 dark:text-rose-400'
+                                                                : 'bg-slate-100 text-slate-800 dark:bg-slate-900/30 dark:text-slate-400'
+                                                    }`}
+                                            >
+                                                {status.charAt(0) + status.slice(1).toLowerCase()}
+                                            </span>
+                                        );
+                                    },
                                 },
                             ]}
                             data={users}

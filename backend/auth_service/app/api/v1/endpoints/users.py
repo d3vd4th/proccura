@@ -40,10 +40,24 @@ def create_user_api(
     dependencies=[Depends(require_permission("user.read"))],
 )
 def list_users_api(
+    search: str = None,
+    status: str = None,
+    role: str = None,
+    page: int = 1,
+    limit: int = 20,
     tenant = Depends(get_current_tenant),
     db: Session = Depends(get_db),
 ):
-    return list_users(db, tenant.id)
+    skip = (page - 1) * limit
+    return list_users(
+        db,
+        tenant.id,
+        search=search,
+        status=status,
+        role_id=role,
+        skip=skip,
+        limit=limit,
+    )
 
 @router.put(
     "/{user_id}",
