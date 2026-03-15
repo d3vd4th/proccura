@@ -66,7 +66,8 @@ def create_role(db: Session, tenant_id: str, payload):
 def list_roles(db: Session, tenant_id: str):
     roles = (
         db.query(Role)
-        .filter(Role.tenant_id == tenant_id)
+        .filter(Role.tenant_id == tenant_id,
+        Role.name !="Vendor")
         .order_by(Role.created_at.desc())
         .all()
     )

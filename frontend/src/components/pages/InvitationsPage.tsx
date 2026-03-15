@@ -21,7 +21,7 @@ import {
     ModalContent,
     ModalHeader,
     ModalTitle,
-    ModalDescription,
+
     ModalFooter,
     CardDescription,
 } from '@/components/atoms';

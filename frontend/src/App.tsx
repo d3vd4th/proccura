@@ -62,7 +62,7 @@ function App() {
     }, [dispatch]);
 
     return (
-        <ThemeProvider defaultTheme="light" storageKey="proccura-ui-theme">
+        <ThemeProvider defaultTheme="dark" storageKey="proccura-ui-theme">
             <ToastProvider>
                 <BrowserRouter>
                     <Routes>
