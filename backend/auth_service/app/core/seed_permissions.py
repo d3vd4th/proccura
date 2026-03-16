@@ -59,6 +59,10 @@ PERMISSIONS = [
     ("vendor_registration.read_user", "View vendor users", "vendor_registration"),
     ("vendor_registration.delete_user", "Remove vendor users", "vendor_registration"),
 
+    # Vendor Portal
+    ("vendor_portal.read_questionnaire", "View assigned questionnaires via vendor portal", "vendor"),
+    ("vendor_portal.submit_questionnaire", "Submit responses to questionnaires via vendor portal", "vendor"),
+
     # Questionnaire
     ("questionnaire.create", "Create questionnaires", "questionnaire"),
     ("questionnaire.read", "View questionnaires", "questionnaire"),
