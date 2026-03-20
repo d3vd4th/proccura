@@ -105,7 +105,7 @@ proccura/
 - Python (3.10+)
 - Docker & Docker Compose
 
-### Clone Repository
+### Clone Rep
 ```bash
 git clone https://github.com/your-org/proccura.git
 cd proccura
