@@ -19,6 +19,7 @@ class CheckEmailResponse(BaseModel):
     user_exists: bool
     is_super_admin: bool = False
     tenants: List[TenantInfo] = []
+    requires_password_reset: bool = False
 
 
 class LoginRequest(BaseModel):
@@ -34,6 +35,7 @@ class UserLogin(BaseModel):
     last_name: Optional[str] = None
     is_active: bool
     is_super_admin: bool
+    user_type: Optional[str] = "INTERNAL"
     profile_pic_url: Optional[str] = None
     tenant_id: Optional[str] = None
     class Config:
@@ -48,3 +50,12 @@ class TokenResponse(BaseModel):
 
 class RefreshTokenRequest(BaseModel):
     refresh_token: str
+
+
+class PasswordResetRequest(BaseModel):
+    email: EmailStr
+
+
+class PasswordResetConfirm(BaseModel):
+    token: str
+    new_password: str

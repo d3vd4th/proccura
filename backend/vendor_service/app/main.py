@@ -6,7 +6,8 @@ from app.api.v1.endpoints import (
     invitations,
     registration,
     vendor_registrations,
-    questionnaires
+    questionnaires,
+    vendor_portal
 )
 # Import all models so Base.metadata.create_all picks them up
 from app.models.invitation import Invitation  # noqa: F401
@@ -32,6 +33,7 @@ app.include_router(invitations.router, prefix="/api/v1/invitations", tags=["Invi
 app.include_router(vendor_registrations.router, prefix="/api/v1/vendor-registrations", tags=["VendorRegistrations"])
 app.include_router(registration.router, prefix="/api/v1/register", tags=["Registration (Public)"])
 app.include_router(questionnaires.router, prefix="/api/v1/questionnaires", tags=["Questionnaires"])
+app.include_router(vendor_portal.router, prefix="/api/v1/vendor-portal", tags=["Vendor Portal"])
 
 @app.get("/health")
 def health_check():

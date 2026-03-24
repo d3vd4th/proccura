@@ -17,6 +17,7 @@ class User(Base):
 
     is_active = Column(Boolean, default=True)
     is_super_admin = Column(Boolean, default=False)
+    requires_password_reset = Column(Boolean, default=False)
 
     last_login_at = Column(DateTime(timezone=True), nullable=True)
 

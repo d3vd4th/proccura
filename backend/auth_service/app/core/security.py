@@ -59,3 +59,14 @@ def create_refresh_token(
 
 def decode_token(token: str) -> dict:
     return jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
+
+def create_password_reset_token(email: str) -> str:
+    """
+    Create a token specifically for password reset.
+    """
+    payload = {
+        "sub": email,
+        "type": "password_reset",
+        "exp": datetime.utcnow() + timedelta(hours=24)
+    }
+    return jwt.encode(payload, settings.SECRET_KEY, algorithm=settings.ALGORITHM)

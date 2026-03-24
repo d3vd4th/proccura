@@ -13,6 +13,7 @@ export interface User {
   tenant_id?: string;
   profile_pic_url?: string;
   permissions?: string[];
+  user_type?: string;
 }
 
 export interface LoginCredentials {

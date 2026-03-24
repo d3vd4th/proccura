@@ -1,5 +1,6 @@
 import { NavLink } from 'react-router-dom';
 import { cn } from '@/lib/utils';
+import { useAppSelector } from '@/store/hooks';
 import {
     LayoutDashboard,
     FileText,
@@ -58,6 +59,11 @@ const navigation: NavItem[] = [
         icon: Users,
     },
     {
+        title: 'Questionnaires',
+        href: '/questionnaires',
+        icon: FileText,
+    },
+    {
         title: 'Invitations',
         href: '/invitations',
         icon: Mail,
@@ -95,6 +101,8 @@ interface SidebarProps {
 }
 
 export const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
+    const { user } = useAppSelector((state) => state.auth);
+
     return (
         <>
             {/* Mobile overlay */}
@@ -121,7 +129,14 @@ export const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
 
                     {/* Navigation */}
                     <nav className="flex-1 space-y-1 overflow-y-auto px-3 py-4">
-                        {navigation.map((item) => (
+                        {navigation
+                            .filter((item) => {
+                                if (user?.user_type === 'VENDOR') {
+                                    return ['Dashboard', 'Questionnaires', 'Quotations', 'Purchase Orders', 'Invoices', 'Payments', 'Profile'].includes(item.title);
+                                }
+                                return item.title !== 'Questionnaires'; // Hide vendor's questionnaires from internal users
+                            })
+                            .map((item) => (
                             <NavLink
                                 key={item.href}
                                 to={item.href}

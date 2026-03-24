@@ -22,6 +22,9 @@ import {
     VendorRegistrationsPage,
     VendorRegistrationDetailsPage,
     ProfilePage,
+    VendorRegistrationForm,
+    ForgotPasswordPage,
+    SetPasswordPage,
 } from '@/components';
 
 
@@ -70,6 +73,10 @@ function App() {
 
                         {/* Public route — vendor pre-registration (no auth needed) */}
                         <Route path="/register/:token" element={<PreRegistrationPage />} />
+                        
+                        {/* Public route — password reset */}
+                        <Route path="/forgot-password" element={<PublicRoute><ForgotPasswordPage /></PublicRoute>} />
+                        <Route path="/set-password" element={<PublicRoute><SetPasswordPage /></PublicRoute>} />
 
                         {/* Protected routes with layout */}
                         <Route element={<ProtectedRoute><DashboardLayout /></ProtectedRoute>}>
@@ -89,6 +96,7 @@ function App() {
                             <Route path="/pre-registrations" element={<VendorRegistrationsPage />} />
                             <Route path="/pre-registrations/:id" element={<VendorRegistrationDetailsPage />} />
                             <Route path="/profile" element={<ProfilePage />} />
+                            <Route path="/questionnaires" element={<VendorRegistrationForm />} />
                         </Route>
 
                         <Route path="/" element={<Navigate to="/login" replace />} />

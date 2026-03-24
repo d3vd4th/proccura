@@ -14,13 +14,15 @@ class UserContext:
         tenant_id: str,
         email: Optional[str] = None,
         role_id: Optional[str] = None,
-        is_super_admin: bool = False
+        is_super_admin: bool = False,
+        user_type: Optional[str] = None
     ):
         self.id = user_id
         self.email = email
         self.tenant_id = tenant_id
         self.role_id = role_id
         self.is_super_admin = is_super_admin
+        self.user_type = user_type
 
 
 def get_current_user(request: Request) -> UserContext:
@@ -36,6 +38,7 @@ def get_current_user(request: Request) -> UserContext:
         email = request.headers.get("X-User-Email")
         tenant_id = request.headers.get("X-Tenant-ID")
         role_id = request.headers.get("X-Role-ID")
+        user_type = request.headers.get("X-User-Type")
         is_super_admin = request.headers.get("X-Is-Super-Admin", "false").lower() == "true"
         
         if not user_id:
@@ -46,7 +49,8 @@ def get_current_user(request: Request) -> UserContext:
             email=email,
             tenant_id=tenant_id,
             role_id=role_id,
-            is_super_admin=is_super_admin
+            is_super_admin=is_super_admin,
+            user_type=user_type
         )
     
     return UserContext(
@@ -54,7 +58,8 @@ def get_current_user(request: Request) -> UserContext:
         email=user.get("email"),
         tenant_id=user.get("tenant_id"),
         role_id=user.get("role_id"),
-        is_super_admin=user.get("is_super_admin", False)
+        is_super_admin=user.get("is_super_admin", False),
+        user_type=user.get("user_type")
     )
 
 

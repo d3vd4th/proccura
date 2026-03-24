@@ -9,12 +9,12 @@ from app.core.security import verify_password, create_access_token, decode_token
 from jose import JWTError
 
 
-def check_email_for_tenants(db: Session, email: str) -> Tuple[bool, bool, List[dict]]:
+def check_email_for_tenants(db: Session, email: str) -> Tuple[bool, bool, List[dict], bool]:
    
     user = db.query(User).filter(User.email == email).first()
     
     if not user or not user.is_active:
-        return False, False, []
+        return False, False, [], False
     
     if user.is_super_admin:
         tenants = []
@@ -32,7 +32,8 @@ def check_email_for_tenants(db: Session, email: str) -> Tuple[bool, bool, List[d
         for t in tenants
     ]
     
-    return True, user.is_super_admin, tenant_list
+    requires_reset = getattr(user, "requires_password_reset", False)
+    return True, user.is_super_admin, tenant_list, requires_reset
 
 
 def authenticate_user(db: Session, email: str, password: str, tenant_id: Optional[str] = None) -> User:
@@ -47,6 +48,12 @@ def authenticate_user(db: Session, email: str, password: str, tenant_id: Optiona
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid credentials"
+        )
+
+    if getattr(user, "requires_password_reset", False):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Password reset is required. Please use the 'Forgot Password' flow."
         )
 
     if not verify_password(password, user.password_hash):

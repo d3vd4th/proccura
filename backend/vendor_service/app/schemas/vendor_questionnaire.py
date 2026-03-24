@@ -14,7 +14,15 @@ class VendorQuestionnaireAssignmentOut(BaseModel):
     pre_registration_id: UUID
     questionnaire_id: UUID
     status: str
+    response: Optional[str] = None
     assigned_at: datetime
     completed_at: Optional[datetime] = None
 
     model_config = ConfigDict(from_attributes=True)
+
+class VendorQuestionnaireSubmitItem(BaseModel):
+    assignment_id: UUID
+    response: str
+
+class VendorQuestionnaireSubmit(BaseModel):
+    responses: List[VendorQuestionnaireSubmitItem]

@@ -59,6 +59,30 @@ async def vendor_registrations_root(request: Request):
     )
 
 @router.api_route(
+    "/api/v1/vendor-portal/{path:path}",
+    methods=["GET", "POST", "PUT", "DELETE", "PATCH"]
+)
+async def vendor_portal_proxy(path: str, request: Request):
+    """Proxy /api/v1/vendor-portal/* requests to vendor service"""
+    return await proxy_request(
+        request,
+        settings.VENDOR_SERVICE_URL,
+        f"/api/v1/vendor-portal/{path}"
+    )
+
+@router.api_route(
+    "/api/v1/vendor-portal",
+    methods=["GET", "POST", "PUT", "DELETE", "PATCH"]
+)
+async def vendor_portal_root(request: Request):
+    """Handle requests to /api/v1/vendor-portal (no subpath)"""
+    return await proxy_request(
+        request,
+        settings.VENDOR_SERVICE_URL,
+        "/api/v1/vendor-portal"
+    )
+
+@router.api_route(
     "/api/v1/questionnaires/{path:path}",
     methods=["GET", "POST", "PUT", "DELETE", "PATCH"]
 )

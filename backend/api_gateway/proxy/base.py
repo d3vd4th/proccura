@@ -36,6 +36,8 @@ async def proxy_request(
             headers["X-Tenant-ID"] = str(user["tenant_id"])
         if user.get("role_id"):
             headers["X-Role-ID"] = str(user["role_id"])
+        if user.get("user_type"):
+            headers["X-User-Type"] = str(user["user_type"])
         if "is_super_admin" in user:
             headers["X-Is-Super-Admin"] = str(user["is_super_admin"]).lower()
     

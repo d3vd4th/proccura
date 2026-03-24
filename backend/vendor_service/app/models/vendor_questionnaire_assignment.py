@@ -13,6 +13,7 @@ class VendorQuestionnaireAssignment(Base):
     pre_registration_id = Column(UUID(as_uuid=True), ForeignKey("vendor_pre_registrations.id", ondelete="CASCADE"), nullable=False, index=True)
     questionnaire_id = Column(UUID(as_uuid=True), ForeignKey("questionnaires.id", ondelete="CASCADE"), nullable=False, index=True)
     status = Column(String, default="Pending", nullable=False) # e.g., Pending, In Progress, Completed
+    response = Column(String, nullable=True)
     
     assigned_at = Column(DateTime(timezone=True), server_default=func.now())
     completed_at = Column(DateTime(timezone=True), nullable=True)

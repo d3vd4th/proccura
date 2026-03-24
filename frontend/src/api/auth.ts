@@ -11,6 +11,7 @@ export interface CheckEmailResponse {
   user_exists: boolean;
   is_super_admin: boolean;
   tenants: TenantInfo[];
+  requires_password_reset: boolean;
 }
 
 export const authAPI = {
@@ -38,6 +39,12 @@ export const authAPI = {
       console.error('❌ getCurrentUser API error:', error.response?.status, error.message);
       throw error;
     }
+  },
+  requestPasswordReset: async (email: string): Promise<void> => {
+    await apiClient.post('/api/v1/auth/request-password-reset', { email });
+  },
+  resetPassword: async (token: string, new_password: string): Promise<void> => {
+    await apiClient.post('/api/v1/auth/reset-password', { token, new_password });
   },
 };
 

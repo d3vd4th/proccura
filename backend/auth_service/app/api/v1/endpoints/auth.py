@@ -3,7 +3,8 @@ from sqlalchemy.orm import Session
 
 from app.schemas.auth import (
     LoginRequest, RefreshTokenRequest, TokenResponse,
-    CheckEmailRequest, CheckEmailResponse, TenantInfo
+    CheckEmailRequest, CheckEmailResponse, TenantInfo,
+    PasswordResetRequest, PasswordResetConfirm
 )
 from app.schemas.auth_log import AuthLogResponse
 from app.services.auth_service import (
@@ -33,7 +34,7 @@ def check_email(
     Step 1 of login: Check if email exists and return user's tenants.
     Super admins can see all tenants.
     """
-    user_exists, is_super_admin, tenant_list = check_email_for_tenants(db, payload.email)
+    user_exists, is_super_admin, tenant_list, requires_reset = check_email_for_tenants(db, payload.email)
     
     tenants = [
         TenantInfo(id=t["id"], name=t["name"], logo_url=t["logo_url"])
@@ -43,7 +44,8 @@ def check_email(
     return CheckEmailResponse(
         user_exists=user_exists,
         is_super_admin=is_super_admin,
-        tenants=tenants
+        tenants=tenants,
+        requires_password_reset=requires_reset
     )
 
 
@@ -205,3 +207,57 @@ def get_user_auth_logs(
 def health_check():
     """Health check endpoint for API Gateway"""
     return {"status": "healthy", "service": "auth"}
+
+@router.post("/request-password-reset")
+def request_password_reset(
+    payload: PasswordResetRequest,
+    db: Session = Depends(get_db)
+):
+    from app.models.user import User
+    from app.core.security import create_password_reset_token
+
+    user = db.query(User).filter(User.email == payload.email).first()
+    if not user:
+        # Don't reveal if user exists or not for security, just return success
+        return {"detail": "If the email is highly valid, a reset link will be sent."}
+    
+    user.requires_password_reset = True
+    db.commit()
+
+    reset_token = create_password_reset_token(user.email)
+    
+    # Dev mode: print reset token
+    print(f"\n{'='*60}")
+    print(f"🔑 PASSWORD RESET REQUESTED (Dev Mode)")
+    print(f"   Email: {user.email}")
+    print(f"   Set Password Link: http://localhost:3000/set-password?token={reset_token}")
+    print(f"{'='*60}\n")
+
+    return {"detail": "Password reset instructions sent"}
+
+@router.post("/reset-password")
+def reset_password(
+    payload: PasswordResetConfirm,
+    db: Session = Depends(get_db)
+):
+    from app.models.user import User
+    from app.core.security import decode_token, hash_password
+    from jose import JWTError
+
+    try:
+        decoded = decode_token(payload.token)
+        if decoded.get("type") != "password_reset":
+            raise HTTPException(status_code=400, detail="Invalid token type")
+        email = decoded.get("sub")
+    except JWTError:
+        raise HTTPException(status_code=400, detail="Invalid or expired token")
+
+    user = db.query(User).filter(User.email == email).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    user.password_hash = hash_password(payload.new_password)
+    user.requires_password_reset = False
+    db.commit()
+
+    return {"detail": "Password successfully reset"}

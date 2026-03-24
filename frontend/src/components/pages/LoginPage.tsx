@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -48,6 +48,15 @@ export default function LoginPage() {
         try {
             const res = await authAPI.checkEmail(data.email);
             if (!res.user_exists) { setEmailError('No account found with this email'); return; }
+            
+            if (res.requires_password_reset) {
+                // Trigger token generation and go to forgot password success state
+                await authAPI.requestPasswordReset(data.email);
+                toast.success('Account setup required. A setup link has been sent to your email.', 'Setup Required');
+                navigate(`/forgot-password?email=${encodeURIComponent(data.email)}&sent=true&setup=true`);
+                return;
+            }
+
             setEmail(data.email); setIsSuperAdmin(res.is_super_admin); setTenants(res.tenants);
             if (res.is_super_admin) {
                 if (res.tenants.length === 0) { setStep('password'); }
@@ -71,6 +80,11 @@ export default function LoginPage() {
             selectedTenant?.id ? localStorage.setItem('tenant_id', selectedTenant.id) : localStorage.removeItem('tenant_id');
             toast.success('Welcome back!', 'Login successful');
             navigate('/dashboard');
+        } else if (loginUser.rejected.match(result)) {
+            if (typeof result.payload === 'string' && result.payload.includes('Password reset is required')) {
+                toast.error('Password reset is required. Redirecting...', 'Action Required');
+                navigate(`/forgot-password?email=${encodeURIComponent(email)}`);
+            }
         }
     };
 
@@ -302,6 +316,12 @@ export default function LoginPage() {
                             <SubmitButton loading={isLoading} loadingText="Signing in…">
                                 Sign in <ChevronRight size={14} />
                             </SubmitButton>
+
+                            <div className="text-center pt-2">
+                                <Link to="/forgot-password" className="text-[12px] font-medium text-primary hover:underline transition-colors">
+                                    Forgot your password?
+                                </Link>
+                            </div>
                         </form>
                     )}
 

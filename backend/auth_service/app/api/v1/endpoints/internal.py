@@ -140,7 +140,19 @@ def create_internal_user(
         )
         db.add(vendor_role)
         db.flush()
-        logger.info(f"Auto-created 'Vendor' role for tenant {payload.tenant_id}")
+
+        # Assign relevant permissions to the new Vendor role
+        vendor_perms = db.query(Permission).filter(
+            Permission.code.in_([
+                "vendor_portal.read_questionnaire",
+                "vendor_portal.submit_questionnaire"
+            ])
+        ).all()
+
+        for p in vendor_perms:
+            db.add(RolePermission(role_id=vendor_role.id, permission_id=p.id))
+
+        logger.info(f"Auto-created 'Vendor' role with {len(vendor_perms)} permissions for tenant {payload.tenant_id}")
 
     # Check if user already exists
     existing_user = db.query(User).filter(User.email == payload.email).first()
@@ -150,25 +162,28 @@ def create_internal_user(
     if existing_user:
         user = existing_user
     else:
-        # Create a new user with a temp password
-        temp_password = secrets.token_urlsafe(12)
+        # Create a new user with a dummy password hash and requires_password_reset flag
         user = User(
             email=payload.email,
             first_name=payload.first_name,
             last_name=payload.last_name,
-            password_hash=hash_password(temp_password),
+            password_hash=hash_password(secrets.token_urlsafe(32)),
             is_active=True,
+            requires_password_reset=True,
         )
         db.add(user)
         db.flush()
         is_new_user = True
 
+        from app.core.security import create_password_reset_token
+        reset_token = create_password_reset_token(user.email)
+
         logger.info(f"Created new user {user.email} (id: {user.id})")
-        # Dev mode: print temp password
+        # Dev mode: print reset token
         print(f"\n{'='*60}")
         print(f"🔑 VENDOR USER CREATED (Dev Mode)")
         print(f"   Email: {user.email}")
-        print(f"   Temp Password: {temp_password}")
+        print(f"   Set Password Link: http://localhost:5173/set-password?token={reset_token}")
         print(f"{'='*60}\n")
 
     # Check if already a member of this tenant
@@ -182,9 +197,20 @@ def create_internal_user(
     )
 
     if existing_tu:
-        raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT,
-            detail="User already exists in this tenant"
+        if existing_tu.status == TenantUserStatus.INACTIVE:
+            existing_tu.status = TenantUserStatus.ACTIVE
+            existing_tu.role_id = vendor_role.id
+            existing_tu.user_type = user_type
+            db.commit()
+            logger.info(f"Reactivated user {user.email} in tenant {payload.tenant_id} as {user_type.value}")
+        else:
+            logger.info(f"User {user.email} already active in tenant {payload.tenant_id}, returning success.")
+            
+        return InternalUserCreateResponse(
+            user_id=user.id,
+            email=user.email,
+            temp_password=temp_password,
+            is_new_user=False,
         )
 
     # Create TenantUser

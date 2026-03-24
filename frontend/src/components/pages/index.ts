@@ -16,3 +16,6 @@ export { PreRegistrationPage } from './PreRegistrationPage'
 export { VendorRegistrationsPage } from './VendorRegistrationsPage';
 export { VendorRegistrationDetailsPage } from './VendorRegistrationDetailsPage';
 export { ProfilePage } from './ProfilePage';
+export { VendorRegistrationForm } from './VendorRegistrationForm';
+export { ForgotPasswordPage } from './ForgotPasswordPage';
+export { SetPasswordPage } from './SetPasswordPage';
