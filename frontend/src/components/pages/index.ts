@@ -19,3 +19,4 @@ export { ProfilePage } from './ProfilePage';
 export { VendorRegistrationForm } from './VendorRegistrationForm';
 export { ForgotPasswordPage } from './ForgotPasswordPage';
 export { SetPasswordPage } from './SetPasswordPage';
+export { VendorDetailsPage } from './VendorDetailsPage';

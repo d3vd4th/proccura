@@ -105,3 +105,27 @@ async def questionnaires_root(request: Request):
         settings.VENDOR_SERVICE_URL,
         "/api/v1/questionnaires"
     )
+
+@router.api_route(
+    "/api/v1/vendors/{path:path}",
+    methods=["GET", "POST", "PUT", "DELETE", "PATCH"]
+)
+async def vendors_proxy(path: str, request: Request):
+    """Proxy /api/v1/vendors/* requests to vendor service"""
+    return await proxy_request(
+        request,
+        settings.VENDOR_SERVICE_URL,
+        f"/api/v1/vendors/{path}"
+    )
+
+@router.api_route(
+    "/api/v1/vendors",
+    methods=["GET", "POST", "PUT", "DELETE", "PATCH"]
+)
+async def vendors_root(request: Request):
+    """Handle requests to /api/v1/vendors (no subpath)"""
+    return await proxy_request(
+        request,
+        settings.VENDOR_SERVICE_URL,
+        "/api/v1/vendors"
+    )

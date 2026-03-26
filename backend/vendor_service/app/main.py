@@ -15,6 +15,7 @@ from app.models.vendor_registration import VendorRegistration  # noqa: F401
 from app.models.vendor_user import VendorUser  # noqa: F401
 from app.models.questionnaire import Questionnaire  # noqa: F401
 from app.models.vendor_questionnaire_assignment import VendorQuestionnaireAssignment  # noqa: F401
+from app.models.vendor import Vendor  # noqa: F401
 
 # Create tables
 Base.metadata.create_all(bind=engine)
@@ -31,9 +32,12 @@ app.add_middleware(
 
 app.include_router(invitations.router, prefix="/api/v1/invitations", tags=["Invitations"])
 app.include_router(vendor_registrations.router, prefix="/api/v1/vendor-registrations", tags=["VendorRegistrations"])
-app.include_router(registration.router, prefix="/api/v1/register", tags=["Registration (Public)"])
+app.include_router(registration.router, prefix="/api/v1/register", tags=["Registration"])
 app.include_router(questionnaires.router, prefix="/api/v1/questionnaires", tags=["Questionnaires"])
 app.include_router(vendor_portal.router, prefix="/api/v1/vendor-portal", tags=["Vendor Portal"])
+
+from app.api.v1.endpoints.vendors import router as vendors_router
+app.include_router(vendors_router, prefix="/api/v1/vendors", tags=["Vendors"])
 
 @app.get("/health")
 def health_check():

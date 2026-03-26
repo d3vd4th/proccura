@@ -76,6 +76,7 @@ class VendorRegistrationOut(BaseModel):
     country: str
     business_type: Optional[str] = None
     status: str = "pending"
+    approver_id: Optional[str] = None
     created_at: datetime
 
 

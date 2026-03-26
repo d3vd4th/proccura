@@ -58,6 +58,9 @@ PERMISSIONS = [
     ("vendor_registration.create_user", "Provision vendor users", "vendor_registration"),
     ("vendor_registration.read_user", "View vendor users", "vendor_registration"),
     ("vendor_registration.delete_user", "Remove vendor users", "vendor_registration"),
+    ("vendor_registration.update_approver", "Assign approver to vendor registrations", "vendor_registration"),
+    ("vendor_registration.approve_questionnaire", "Approve or reject vendor questionnaires", "vendor_registration"),
+    ("vendor_registration.update_vendor", "Convert approved registrations to active vendors", "vendor_registration"),
 
     # Vendor Portal
     ("vendor_portal.read_questionnaire", "View assigned questionnaires via vendor portal", "vendor"),

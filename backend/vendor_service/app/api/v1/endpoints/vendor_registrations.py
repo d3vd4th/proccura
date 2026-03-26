@@ -56,6 +56,57 @@ def get_assigned_questionnaires(
 ):
     return VendorRegistrationService.get_assigned_questionnaires(db, id, tenant_id)
 
+from app.schemas.vendor import VendorApproverAssign, VendorOut
+from app.services.vendor_service import VendorService
+
+@router.patch("/{id}/approver", response_model=VendorRegistrationOut)
+def assign_approver(
+    id: str,
+    approver_data: VendorApproverAssign,
+    tenant_id: str = Depends(get_tenant_id),
+    db: Session = Depends(get_db)
+):
+    """Assign an approver to the vendor registration."""
+    return VendorRegistrationService.assign_approver(db, id, tenant_id, approver_data.approver_id)
+
+@router.post("/{id}/approve", response_model=VendorRegistrationOut)
+def approve_registration(
+    id: str,
+    tenant_id: str = Depends(get_tenant_id),
+    db: Session = Depends(get_db)
+):
+    """Approve the vendor questionnaires/registration."""
+    return VendorRegistrationService.approve_registration(db, id, tenant_id)
+
+@router.post("/{id}/questionnaires/{assignment_id}/approve", response_model=VendorQuestionnaireAssignmentOut)
+def approve_assignment(
+    id: str,
+    assignment_id: str,
+    tenant_id: str = Depends(get_tenant_id),
+    db: Session = Depends(get_db)
+):
+    """Approve a specific questionnaire assignment."""
+    return VendorRegistrationService.approve_assignment(db, id, assignment_id, tenant_id)
+
+@router.post("/{id}/questionnaires/{assignment_id}/reject", response_model=VendorQuestionnaireAssignmentOut)
+def reject_assignment(
+    id: str,
+    assignment_id: str,
+    tenant_id: str = Depends(get_tenant_id),
+    db: Session = Depends(get_db)
+):
+    """Reject a specific questionnaire assignment."""
+    return VendorRegistrationService.reject_assignment(db, id, assignment_id, tenant_id)
+
+@router.patch("/{id}/vendor", response_model=VendorOut)
+def convert_to_vendor(
+    id: str,
+    tenant_id: str = Depends(get_tenant_id),
+    db: Session = Depends(get_db)
+):
+    """Convert an approved registration to an actual vendor."""
+    return VendorService.convert_to_vendor(db, id, tenant_id)
+
 
 # --- Vendor User Endpoints ---
 

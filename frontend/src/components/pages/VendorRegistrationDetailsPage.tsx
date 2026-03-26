@@ -9,8 +9,9 @@ import {
     Button,
     useToast
 } from '@/components/atoms';
-import { vendorRegistrationsAPI, VendorRegistration, VendorUser } from '@/api/vendorRegistrations';
+import { vendorRegistrationsAPI, VendorRegistration, VendorUser, VendorQuestionnaireAssignment } from '@/api/vendorRegistrations';
 import { questionnaireApi } from '@/api/questionnaires';
+import { usersAPI } from '@/api/users';
 
 export const VendorRegistrationDetailsPage = () => {
     const { id } = useParams<{ id: string }>();
@@ -21,8 +22,17 @@ export const VendorRegistrationDetailsPage = () => {
     const [groupedQuestionnaires, setGroupedQuestionnaires] = useState<Record<string, any[]>>({});
     const [selectedQuestionnaireIds, setSelectedQuestionnaireIds] = useState<string[]>([]);
     const [expandedDomains, setExpandedDomains] = useState<Set<string>>(new Set());
+    const [expandedReviewDomains, setExpandedReviewDomains] = useState<Set<string>>(new Set());
     const [isLoading, setIsLoading] = useState(true);
     const [isSaving, setIsSaving] = useState(false);
+    const [isBulkProcessing, setIsBulkProcessing] = useState(false);
+
+    // Approver & Review state
+    const [internalUsers, setInternalUsers] = useState<any[]>([]);
+    const [selectedApproverId, setSelectedApproverId] = useState<string>('');
+    const [isAssigningApprover, setIsAssigningApprover] = useState(false);
+    const [assignedQuestionnaires, setAssignedQuestionnaires] = useState<VendorQuestionnaireAssignment[]>([]);
+
 
     // Vendor Users state
     const [vendorUsers, setVendorUsers] = useState<VendorUser[]>([]);
@@ -51,10 +61,23 @@ export const VendorRegistrationDetailsPage = () => {
             // Fetch assigned questionnaire IDs
             const assignedData = await vendorRegistrationsAPI.getAssignedQuestionnaires(id);
             setSelectedQuestionnaireIds(assignedData.map(a => a.questionnaire_id));
+            setAssignedQuestionnaires(assignedData);
 
             // Fetch vendor users
             const usersData = await vendorRegistrationsAPI.listUsers(id);
             setVendorUsers(usersData);
+
+            // Fetch internal users for approver dropdown
+            try {
+                const iUsers = await usersAPI.getAll({ limit: 100 });
+                setInternalUsers(Array.isArray(iUsers) ? iUsers : (iUsers as any).users || []);
+            } catch (e) {
+                console.error("Failed to load internal users", e);
+            }
+
+            if (vendorData.approver_id) {
+                setSelectedApproverId(vendorData.approver_id);
+            }
         } catch (error) {
             console.error('Failed to fetch details:', error);
             toast.error('Failed to load vendor details');
@@ -99,6 +122,110 @@ export const VendorRegistrationDetailsPage = () => {
             setIsSaving(false);
         }
     };
+
+    const handleAssignApprover = async () => {
+        if (!id || !selectedApproverId) return;
+        try {
+            setIsAssigningApprover(true);
+            await vendorRegistrationsAPI.assignApprover(id, selectedApproverId);
+            toast.success('Approver assigned successfully');
+            fetchDetails();
+        } catch (error) {
+            toast.error('Failed to assign approver');
+        } finally {
+            setIsAssigningApprover(false);
+        }
+    };
+
+    const handleApproveReject = async (assignmentId: string, action: 'approve' | 'reject') => {
+        if (!id) return;
+        try {
+            if (action === 'approve') {
+                await vendorRegistrationsAPI.approveAssignment(id, assignmentId);
+                toast.success('Questionnaire approved');
+            } else {
+                await vendorRegistrationsAPI.rejectAssignment(id, assignmentId);
+                toast.success('Questionnaire rejected');
+            }
+            
+            // Local state update prevents unnecessary refetching
+            const newStatus = action === 'approve' ? 'Approved' : 'Rejected';
+            setAssignedQuestionnaires(prev => {
+                const updated = prev.map(a => a.id === assignmentId ? { ...a, status: newStatus } : a);
+                // Dynamically flag full approval
+                if (action === 'approve') {
+                    const allApproved = updated.every(a => a.status === 'Approved');
+                    if (allApproved && vendor) {
+                        setVendor({ ...vendor, status: 'APPROVED' });
+                    }
+                }
+                return updated;
+            });
+        } catch (error) {
+            toast.error(`Failed to ${action} questionnaire`);
+        }
+    };
+
+    const handleBulkApproveReject = async (action: 'approve' | 'reject') => {
+        if (!id) return;
+        
+        const pendingAssignments = assignedQuestionnaires.filter(
+            a => a.response && a.status !== 'Approved' && a.status !== 'Rejected'
+        );
+        
+        if (pendingAssignments.length === 0) {
+            toast.error(`No pending responses to ${action}`);
+            return;
+        }
+
+        try {
+            setIsBulkProcessing(true);
+            await Promise.all(pendingAssignments.map(a => 
+                action === 'approve' 
+                    ? vendorRegistrationsAPI.approveAssignment(id, a.id)
+                    : vendorRegistrationsAPI.rejectAssignment(id, a.id)
+            ));
+            
+            toast.success(`Successfully ${action}d ${pendingAssignments.length} questionnaires`);
+            
+            const newStatus = action === 'approve' ? 'Approved' : 'Rejected';
+            setAssignedQuestionnaires(prev => {
+                const updated = prev.map(a => 
+                    pendingAssignments.some(p => p.id === a.id) 
+                        ? { ...a, status: newStatus } 
+                        : a
+                );
+                
+                if (action === 'approve') {
+                    const allApproved = updated.every(a => a.status === 'Approved');
+                    if (allApproved && vendor) {
+                        setVendor({ ...vendor, status: 'APPROVED' });
+                    }
+                }
+                return updated;
+            });
+            
+        } catch (error) {
+            toast.error(`Failed to bulk ${action} all questionnaires. Partial updates may have occurred.`);
+            fetchDetails();
+        } finally {
+            setIsBulkProcessing(false);
+        }
+    };
+
+    const handleConvertVendor = async () => {
+        if (!id) return;
+        try {
+            await vendorRegistrationsAPI.convertVendor(id);
+            toast.success('Vendor converted successfully!');
+            fetchDetails();
+            navigate('/vendors');
+        } catch (error) {
+            toast.error('Failed to convert vendor');
+        }
+    };
+
+
 
     const handleProvisionUser = async (isPrimary = false) => {
         if (!id) return;
@@ -197,6 +324,7 @@ export const VendorRegistrationDetailsPage = () => {
                             <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wider border ${vendor.status === 'APPROVED' ? 'bg-emerald-100 text-emerald-700 border-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-400 dark:border-emerald-800/30'
                                 : vendor.status === 'REJECTED' ? 'bg-red-100 text-red-700 border-red-200 dark:bg-red-900/30 dark:text-red-400 dark:border-red-800/30'
                                     : vendor.status === 'SUBMITTED' ? 'bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-900/30 dark:text-blue-400 dark:border-blue-800/30'
+                                    : vendor.status === 'CONVERTED' ? 'bg-indigo-100 text-indigo-700 border-indigo-200 dark:bg-indigo-900/30 dark:text-indigo-400 dark:border-indigo-800/30'
                                         : 'bg-amber-100 text-amber-700 border-amber-200 dark:bg-amber-900/30 dark:text-amber-400 dark:border-amber-800/30'
                                 }`}>
                                 {vendor.status?.replace(/_/g, ' ') || 'PENDING'}
@@ -204,6 +332,17 @@ export const VendorRegistrationDetailsPage = () => {
                         </div>
                     </div>
                 </div>
+                {vendor.status === 'APPROVED' && (
+                    <div className="absolute top-6 right-6 z-10">
+                        <Button 
+                            onClick={handleConvertVendor} 
+                            className="bg-indigo-600 hover:bg-emerald-700 text-white shadow-md border-indigo-700" 
+                            size="lg"
+                        >
+                            Convert to Active Vendor
+                        </Button>
+                    </div>
+                )}
             </div>
 
             <div className="grid gap-6">
@@ -392,6 +531,42 @@ export const VendorRegistrationDetailsPage = () => {
                     </CardContent>
                 </Card>
 
+                {/* Approver Selection */}
+                <Card className="shadow-sm border-border/50">
+                    <CardHeader className="dark:bg-muted/30 border-b py-4 px-6">
+                        <CardTitle className="flex items-center gap-2.5 text-base">
+                            <div className="h-7 w-7 rounded-lg bg-orange-100 dark:bg-orange-900/30 flex items-center justify-center">
+                                <User className="h-3.5 w-3.5 text-orange-600 dark:text-orange-400" />
+                            </div>
+                            Questionnaire Approver
+                        </CardTitle>
+                    </CardHeader>
+                    <CardContent className="p-6">
+                        <div className="flex items-end gap-4 max-w-md">
+                            <div className="flex-1">
+                                <label className="text-xs font-medium text-muted-foreground block mb-2">Assign an Internal User</label>
+                                <select
+                                    value={selectedApproverId}
+                                    onChange={(e) => setSelectedApproverId(e.target.value)}
+                                    className="w-full px-3 py-2 rounded-lg border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+                                >
+                                    <option value="">-- Select Approver --</option>
+                                    {internalUsers.map(u => (
+                                        <option key={u.id} value={u.id}>{u.first_name} {u.last_name} ({u.email})</option>
+                                    ))}
+                                </select>
+                            </div>
+                            <Button 
+                                onClick={handleAssignApprover} 
+                                disabled={isAssigningApprover || !selectedApproverId || selectedApproverId === vendor.approver_id}
+                                variant={selectedApproverId === vendor.approver_id ? "secondary" : "default"}
+                            >
+                                {isAssigningApprover ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Assign Approver'}
+                            </Button>
+                        </div>
+                    </CardContent>
+                </Card>
+
                 {/* Questionnaire Assignment */}
                 <Card className="shadow-sm border-border/50">
                     <CardHeader className="dark:bg-primary/5 border-b py-4 px-6">
@@ -520,6 +695,136 @@ export const VendorRegistrationDetailsPage = () => {
                         )}
                     </CardContent>
                 </Card>
+
+                {/* Review Responses */}
+                {assignedQuestionnaires.length > 0 && vendor.status !== 'PENDING' && vendor.status !== 'QUESTIONNAIRES_ASSIGNED' && (
+                <Card className="shadow-sm border-border/50">
+                    <CardHeader className="dark:bg-primary/5 border-b py-4 px-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                        <CardTitle className="flex items-center gap-2.5 text-base">
+                            <div className="h-7 w-7 rounded-lg bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center">
+                                <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />
+                            </div>
+                            Review Responses
+                        </CardTitle>
+                        
+                        <div className="flex gap-2">
+                            <Button 
+                                size="sm" 
+                                variant="outline" 
+                                className="text-red-600 border-red-200 hover:bg-red-50 hover:text-red-700 disabled:opacity-50"
+                                onClick={() => handleBulkApproveReject('reject')}
+                                disabled={isBulkProcessing || assignedQuestionnaires.filter(a => a.response && a.status !== 'Approved' && a.status !== 'Rejected').length === 0}
+                            >
+                                {isBulkProcessing ? <Loader2 className="h-3.5 w-3.5 animate-spin mr-1.5" /> : null}
+                                Reject All
+                            </Button>
+                            <Button 
+                                size="sm" 
+                                className="bg-emerald-600 hover:bg-emerald-700 text-white disabled:opacity-50"
+                                onClick={() => handleBulkApproveReject('approve')}
+                                disabled={isBulkProcessing || assignedQuestionnaires.filter(a => a.response && a.status !== 'Approved' && a.status !== 'Rejected').length === 0}
+                            >
+                                {isBulkProcessing ? <Loader2 className="h-3.5 w-3.5 animate-spin mr-1.5" /> : null}
+                                Approve All
+                            </Button>
+                        </div>
+                    </CardHeader>
+                    <CardContent className="p-0">
+                        <div className="divide-y divide-border/50">
+                            {Object.entries(groupedQuestionnaires).map(([domain, questions]) => {
+                                const assignedQuestionsInDomain = questions.filter(q => 
+                                    assignedQuestionnaires.some(a => a.questionnaire_id === q.id)
+                                );
+                                
+                                if (assignedQuestionsInDomain.length === 0) return null;
+
+                                return (
+                                    <div key={`review-${domain}`} className="px-6 py-4">
+                                        <div
+                                            className="flex items-center justify-between cursor-pointer select-none"
+                                            onClick={() => setExpandedReviewDomains(prev => {
+                                                const next = new Set(prev);
+                                                next.has(domain) ? next.delete(domain) : next.add(domain);
+                                                return next;
+                                            })}
+                                        >
+                                            <h3 className="font-semibold text-sm text-foreground flex items-center gap-2">
+                                                {expandedReviewDomains.has(domain) ? (
+                                                    <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                                                ) : (
+                                                    <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                                                )}
+                                                {domain}
+                                                <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-muted text-muted-foreground">
+                                                    {assignedQuestionsInDomain.length}
+                                                </span>
+                                            </h3>
+                                        </div>
+                                        
+                                        {expandedReviewDomains.has(domain) && (
+                                            <div className="grid grid-cols-1 gap-4 mt-4">
+                                                {assignedQuestionsInDomain.map(q => {
+                                                    const assignment = assignedQuestionnaires.find(a => a.questionnaire_id === q.id);
+                                                    if (!assignment) return null;
+                                                    
+                                                    return (
+                                                        <div key={assignment.id} className="p-4 rounded-lg border border-border/60 bg-background hover:bg-muted/30 transition-colors">
+                                                            <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
+                                                                <div className="flex-1 space-y-2">
+                                                                    <h4 className="font-medium text-sm text-foreground">{q.question}</h4>
+                                                                    {assignment.response ? (
+                                                                        <div className="bg-muted/50 p-3 rounded-md text-sm text-foreground/80 whitespace-pre-wrap border border-border/50">
+                                                                            {assignment.response}
+                                                                        </div>
+                                                                    ) : (
+                                                                        <p className="text-sm italic text-muted-foreground">No response submitted yet.</p>
+                                                                    )}
+                                                                </div>
+                                                                <div className="flex flex-col items-end gap-2 shrink-0">
+                                                                    <div className={`px-2.5 py-1 rounded-full text-xs font-semibold ${
+                                                                        assignment.status === 'Approved' ? 'bg-emerald-100 text-emerald-700' :
+                                                                        assignment.status === 'Rejected' ? 'bg-red-100 text-red-700' :
+                                                                        assignment.status === 'Completed' ? 'bg-blue-100 text-blue-700' :
+                                                                        'bg-slate-100 text-slate-700'
+                                                                    }`}>
+                                                                        {assignment.status}
+                                                                    </div>
+                                                                    
+                                                                    {assignment.response && assignment.status !== 'Approved' && (
+                                                                        <div className="flex items-center gap-2 mt-2">
+                                                                            <Button 
+                                                                                size="sm" 
+                                                                                variant="outline" 
+                                                                                className="text-red-600 border-red-200 hover:bg-red-50 hover:text-red-700"
+                                                                                onClick={(e) => { e.stopPropagation(); handleApproveReject(assignment.id, 'reject'); }}
+                                                                                disabled={isBulkProcessing}
+                                                                            >
+                                                                                Reject
+                                                                            </Button>
+                                                                            <Button 
+                                                                                size="sm" 
+                                                                                className="bg-emerald-600 hover:bg-emerald-700 text-white"
+                                                                                onClick={(e) => { e.stopPropagation(); handleApproveReject(assignment.id, 'approve'); }}
+                                                                                disabled={isBulkProcessing}
+                                                                            >
+                                                                                Approve
+                                                                            </Button>
+                                                                        </div>
+                                                                    )}
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    );
+                                                })}
+                                            </div>
+                                        )}
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    </CardContent>
+                </Card>
+                )}
             </div>
         </div>
     );

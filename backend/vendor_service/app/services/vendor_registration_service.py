@@ -152,3 +152,77 @@ class VendorRegistrationService:
         return db.query(VendorQuestionnaireAssignment).filter(
             VendorQuestionnaireAssignment.pre_registration_id == registration_id,
         ).all()
+
+    @staticmethod
+    def assign_approver(db: Session, registration_id: str, tenant_id: str, approver_id: str):
+        reg = VendorRegistrationService.get_registration(db, registration_id, tenant_id)
+        if not reg:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Vendor registration not found")
+        
+        reg.approver_id = approver_id
+        db.commit()
+        db.refresh(reg)
+        return reg
+
+    @staticmethod
+    def approve_registration(db: Session, registration_id: str, tenant_id: str):
+        reg = VendorRegistrationService.get_registration(db, registration_id, tenant_id)
+        if not reg:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Vendor registration not found")
+            
+        reg.status = RegistrationStatus.APPROVED
+        db.commit()
+        db.refresh(reg)
+        return reg
+
+    @staticmethod
+    def approve_assignment(db: Session, registration_id: str, assignment_id: str, tenant_id: str):
+        assignment = db.query(VendorQuestionnaireAssignment).filter(
+            VendorQuestionnaireAssignment.id == assignment_id,
+            VendorQuestionnaireAssignment.pre_registration_id == registration_id,
+            VendorQuestionnaireAssignment.tenant_id == tenant_id
+        ).first()
+
+        if not assignment:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Assignment not found")
+            
+        assignment.status = "Approved"
+        db.commit()
+        db.refresh(assignment)
+
+        # Check if all assignments are Approved
+        total = db.query(VendorQuestionnaireAssignment).filter(
+            VendorQuestionnaireAssignment.pre_registration_id == registration_id
+        ).count()
+
+        approved = db.query(VendorQuestionnaireAssignment).filter(
+            VendorQuestionnaireAssignment.pre_registration_id == registration_id,
+            VendorQuestionnaireAssignment.status == "Approved"
+        ).count()
+
+        if total > 0 and total == approved:
+            reg = db.query(VendorRegistration).filter(
+                VendorRegistration.id == registration_id
+            ).first()
+            if reg:
+                reg.status = RegistrationStatus.APPROVED
+                db.commit()
+
+        return assignment
+
+    @staticmethod
+    def reject_assignment(db: Session, registration_id: str, assignment_id: str, tenant_id: str):
+        assignment = db.query(VendorQuestionnaireAssignment).filter(
+            VendorQuestionnaireAssignment.id == assignment_id,
+            VendorQuestionnaireAssignment.pre_registration_id == registration_id,
+            VendorQuestionnaireAssignment.tenant_id == tenant_id
+        ).first()
+
+        if not assignment:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Assignment not found")
+
+        assignment.status = "Rejected"
+        db.commit()
+        db.refresh(assignment)
+
+        return assignment

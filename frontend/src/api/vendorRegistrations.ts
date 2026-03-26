@@ -6,6 +6,7 @@ export interface VendorQuestionnaireAssignment {
     pre_registration_id: string;
     questionnaire_id: string;
     status: string;
+    response?: string;
     assigned_at: string;
     completed_at?: string;
 }
@@ -27,6 +28,7 @@ export interface VendorRegistration {
     country: string;
     business_type?: string;
     status: string;
+    approver_id?: string;
     created_at: string;
 }
 
@@ -73,6 +75,24 @@ export const vendorRegistrationsAPI = {
     },
     getAssignedQuestionnaires: async (id: string) => {
         const { data } = await api.get<VendorQuestionnaireAssignment[]>(`/api/v1/vendor-registrations/${id}/questionnaires`);
+        return data;
+    },
+
+    // Approval Flow
+    assignApprover: async (id: string, approver_id: string) => {
+        const { data } = await api.patch<VendorRegistration>(`/api/v1/vendor-registrations/${id}/approver`, { approver_id });
+        return data;
+    },
+    approveAssignment: async (id: string, assignment_id: string) => {
+        const { data } = await api.post<VendorQuestionnaireAssignment>(`/api/v1/vendor-registrations/${id}/questionnaires/${assignment_id}/approve`);
+        return data;
+    },
+    rejectAssignment: async (id: string, assignment_id: string) => {
+        const { data } = await api.post<VendorQuestionnaireAssignment>(`/api/v1/vendor-registrations/${id}/questionnaires/${assignment_id}/reject`);
+        return data;
+    },
+    convertVendor: async (id: string) => {
+        const { data } = await api.patch<any>(`/api/v1/vendor-registrations/${id}/vendor`);
         return data;
     },
 

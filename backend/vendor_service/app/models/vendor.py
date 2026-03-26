@@ -1,28 +1,14 @@
 import uuid
-import enum
-from sqlalchemy import Column, String, DateTime, Text, Enum, func
+from sqlalchemy import Column, String, DateTime, Text, func, ForeignKey
 from sqlalchemy.dialects.postgresql import UUID
-from sqlalchemy.orm import relationship
 from app.core.database import Base
 
-
-class RegistrationStatus(str, enum.Enum):
-    PENDING = "PENDING"
-    QUESTIONNAIRES_ASSIGNED = "QUESTIONNAIRES_ASSIGNED"
-    USERS_PROVISIONED = "USERS_PROVISIONED"
-    IN_PROGRESS = "IN_PROGRESS"
-    SUBMITTED = "SUBMITTED"
-    APPROVED = "APPROVED"
-    REJECTED = "REJECTED"
-    CONVERTED = "CONVERTED"
-
-
-class VendorRegistration(Base):
-    __tablename__ = "vendor_pre_registrations"
+class Vendor(Base):
+    __tablename__ = "vendors"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    invitation_id = Column(UUID(as_uuid=True), nullable=False, index=True)
     tenant_id = Column(UUID(as_uuid=True), nullable=False, index=True)
+    registration_id = Column(UUID(as_uuid=True), ForeignKey("vendor_pre_registrations.id", ondelete="SET NULL"), nullable=True, unique=True)
 
     # Business info
     business_name = Column(String, nullable=False)
@@ -45,16 +31,7 @@ class VendorRegistration(Base):
     business_type = Column(String, nullable=True)
     products_services = Column(Text, nullable=True)
 
-    # Status tracking
-    status = Column(
-        Enum(RegistrationStatus, name="registration_status"),
-        default=RegistrationStatus.PENDING,
-        nullable=False,
-    )
-    approver_id = Column(String, nullable=True)
+    status = Column(String, default="ACTIVE", nullable=False)
 
     created_at = Column(DateTime(timezone=True), server_default=func.now())
-
-    # Relationships
-    questionnaire_assignments = relationship("VendorQuestionnaireAssignment", back_populates="pre_registration", cascade="all, delete-orphan")
-
+    updated_at = Column(DateTime(timezone=True), onupdate=func.now())

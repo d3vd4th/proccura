@@ -25,6 +25,7 @@ import {
     VendorRegistrationForm,
     ForgotPasswordPage,
     SetPasswordPage,
+    VendorDetailsPage,
 } from '@/components';
 
 
@@ -87,6 +88,7 @@ function App() {
                             <Route path="/purchase-orders" element={<PurchaseOrdersPage />} />
                             <Route path="/invoices" element={<InvoicesPage />} />
                             <Route path="/vendors" element={<VendorsPage />} />
+                            <Route path="/vendors/:id" element={<VendorDetailsPage />} />
                             <Route path="/payments" element={<PaymentsPage />} />
                             <Route path="/queries" element={<QueriesPage />} />
                             <Route path="/reports" element={<ReportsPage />} />
