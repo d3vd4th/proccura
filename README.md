@@ -111,7 +111,7 @@ git clone https://github.com/your-org/proccura.git
 cd proccura
 
 ## Start Infrastructure;
-docker-compose up -d
+docker-compose up
 
 ## Run Backend (example);
 cd backend/auth-service
