@@ -98,7 +98,7 @@ proccura/
 
 ---
 
-## Getting Started (Local Development)
+## Getting Started (Local Development))
 
 ### Prerequisites
 - Node.js (v18+)
