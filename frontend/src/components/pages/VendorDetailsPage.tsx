@@ -72,7 +72,7 @@ export const VendorDetailsPage = () => {
                             <h1 className="text-3xl font-bold tracking-tight">{vendor.business_name}</h1>
                             <span className={`px-2.5 py-1 text-xs font-semibold rounded-full ${
                                 vendor.status === 'ACTIVE' 
-                                    ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400' 
+                                    ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' 
                                     : 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400'
                             }`}>
                                 {vendor.status}

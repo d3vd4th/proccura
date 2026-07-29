@@ -2,14 +2,12 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
-    DATABASE_URL: str
+    # Resend
+    RESEND_API_KEY: str = ""
+    RESEND_FROM_EMAIL: str = "Proccura <onboarding@resend.dev>"
 
-    # Frontend URL for invitation links
+    # Frontend URL for email links
     FRONTEND_URL: str = "http://localhost:5173"
-
-    # Auth service (for internal calls)
-    AUTH_SERVICE_URL: str = "http://localhost:8001"
-    INTERNAL_API_KEY: str = "dev-internal-key"
 
     # Kafka
     KAFKA_BOOTSTRAP_SERVERS: str = "kafka:9092"

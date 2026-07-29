@@ -8,9 +8,8 @@ class Settings(BaseSettings):
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 15
     REFRESH_TOKEN_EXPIRE_DAYS: int = 7
 
-    # Resend
-    RESEND_API_KEY: str = ""
-    RESEND_FROM_EMAIL: str = "Proccura <onboarding@resend.dev>"
+    # Kafka
+    KAFKA_BOOTSTRAP_SERVERS: str = "kafka:9092"
 
     # Internal service-to-service auth
     INTERNAL_API_KEY: str = "dev-internal-key"

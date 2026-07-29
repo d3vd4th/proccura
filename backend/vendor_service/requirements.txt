@@ -5,7 +5,7 @@ psycopg2-binary
 pydantic-settings
 python-dotenv
 email-validator
-resend
+confluent-kafka
 
 pytest
 httpx
